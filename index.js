@@ -13,6 +13,8 @@ const clearAllDtrBtn = document.getElementById("clear-all-dtr-btn");
 const dashboardView = document.getElementById("dashboard-view");
 const calendarView = document.getElementById("calendar-view");
 const dtrView = document.getElementById("dtr-view");
+const shortcutToDtr = document.getElementById("shortcut-to-dtr");
+const shortcutToCalendar = document.getElementById("shortcut-to-calendar");
 const mainAppLayout = document.getElementById("main-app-layout");
 const setupOverlayPanel = document.getElementById("profile-setup-view");
 const appLoadingScreen = document.getElementById("app-loading-screen");
@@ -599,6 +601,8 @@ function restoreActiveWorkspaceView() {
 navDashboard.addEventListener("click", (e) => { e.preventDefault(); showWorkspaceView("dashboard"); });
 navCalendar.addEventListener("click", (e) => { e.preventDefault(); showWorkspaceView("calendar"); });
 navDtr.addEventListener("click", (e) => { e.preventDefault(); showWorkspaceView("dtr"); });
+shortcutToCalendar.addEventListener("click", () => showWorkspaceView("calendar"));
+shortcutToDtr.addEventListener("click", () => showWorkspaceView("dtr"));
 
 // ===================== MS-EXCEL SHEET CONVERTER ENGINE =====================
 const triggerExcelSpreadsheetDownload = (e) => {
