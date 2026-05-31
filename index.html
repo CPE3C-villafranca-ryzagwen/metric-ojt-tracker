@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metric</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+    <div id="app-loading-screen" class="app-loading-screen">
+        <div class="app-loading-card">
+            <div class="app-loading-spinner"></div>
+            <h2>Loading Metric</h2>
+            <p>Restoring your workspace session...</p>
+        </div>
+    </div>
+    <div id="profile-setup-view" class="setup-overlay hidden">
+        <div class="setup-card" id="auth-card-container">
+            <div class="setup-header" style="position: relative; display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                <div style="flex: 1; padding-right: 5rem;">
+                    <h2>Login to Metric</h2>
+                    <p>Enter your credentials to manage your OJT tracking dashboard.</p>
+                </div>
+                <div class="theme-switch-wrapper auth-theme-toggle" style="position: absolute; right: 0; top: 0;">
+                    <div class="theme-switch-pill">
+                        <span class="material-icons-sharp icon-light">light_mode</span>
+                        <span class="material-icons-sharp icon-dark">dark_mode</span>
+                        <div class="theme-switch-handle"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="setup-body" id="auth-forms-root">
+                <div id="login-fields-box">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="auth-email" placeholder="Enter your email address">
+                    </div>
+                    <div class="form-group input-password-container" style="margin-top: 0.5rem;">
+                        <label>Password</label>
+                        <input type="password" id="auth-password" placeholder="Enter your password">
+                        <span class="material-icons-sharp toggle-password-visibility" id="toggle-login-pass">visibility_off</span>
+                    </div>
+                    <p style="margin-top: 0.5rem; text-align: right; font-size: 0.82rem; color: var(--color-dark-variant);">
+                        <a href="#" id="forgot-password-trigger" style="color: var(--color-primary); font-weight: 600;">Forgot Password?</a>
+                    </p>
+                    <button type="button" class="start-system-btn form-action-login-purple-btn" id="login-trigger-btn">Sign In Account</button>
+
+                    <button type="button" class="start-system-btn google-login-action-btn" style="background: var(--color-white); color: var(--color-dark); border: 1px solid var(--color-info-dark); margin-top: 0.6rem; display: flex; align-items: center; justify-content: center; gap: 0.8rem; box-shadow: none;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_Logo.svg" style="width: 1.2rem; height: 1.2rem; display: inline-block;">
+                        Continue with Google Account
+                    </button>
+
+                    <p style="margin-top: 0.8rem; text-align: center; font-size: 0.82rem; color: var(--color-dark-variant);">
+                        New user? <a href="#" id="go-to-register-trigger" style="color: var(--color-primary); font-weight: 600;">Create Profile Account</a>
+                    </p>
+                </div>
+
+                <div id="register-fields-box" style="display: none;">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="reg-email" placeholder="Enter your email address">
+                    </div>
+                    <div class="form-group input-password-container" style="margin-top: 0.5rem;">
+                        <label>Password</label>
+                        <input type="password" id="reg-password" placeholder="Create a strong password">
+                        <span class="material-icons-sharp toggle-password-visibility" id="toggle-reg-pass">visibility_off</span>
+                    </div>
+                    <div class="form-group input-password-container" style="margin-top: 0.5rem;">
+                        <label>Confirm Password</label>
+                        <input type="password" id="reg-confirm-password" placeholder="Retype your created password">
+                        <span class="material-icons-sharp toggle-password-visibility" id="toggle-confirm-pass">visibility_off</span>
+                    </div>
+                    <div id="password-strength-meter" style="display:none; font-size:0.75rem; font-weight:600; margin-top: 0.2rem; color:var(--color-danger);">
+                        <span class="material-icons-sharp" style="font-size:0.85rem; vertical-align:middle;">info</span> Password must be 8+ chars with a number & uppercase letter.
+                    </div>
+                    
+                    <button type="button" class="start-system-btn form-submit-register-green-btn" id="core-register-trigger-action-btn">Create Profile Account</button>
+                    
+                    <button type="button" class="start-system-btn google-login-action-btn" style="background: var(--color-white); color: var(--color-dark); border: 1px solid var(--color-info-dark); margin-top: 0.6rem; display: flex; align-items: center; justify-content: center; gap: 0.8rem; box-shadow: none;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_Logo.svg" style="width: 1.2rem; height: 1.2rem; display: inline-block;">
+                        Sign Up with Google Account
+                    </button>
+
+                    <p style="margin-top: 1.2rem; text-align: center; font-size: 0.82rem; color: var(--color-dark-variant);">
+                        Have an account? <a href="#" id="go-to-login-link" style="color: var(--color-primary); font-weight: 600;">Back to Login</a>
+                    </p>
+                </div>
+            </div>
+            <div class="auth-watermark" style="margin-top: 2rem; text-align: center; font-size: 0.72rem; color: var(--color-info-dark); font-weight: 500;">
+                © 2026 <span>Metric Internship Tracker</span> • Powered by Firebase Cloud Core
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="first-time-setup-modal" style="display: none; z-index: 10000;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configure Profile Information</h2>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="font-size:0.8rem; margin-bottom:0.5rem;">Please set up your core tracker metadata details to unlock the dashboard workspaces.</p>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="first-setup-name" placeholder="Enter your full name or nickname">
+                </div>
+                <div class="form-group">
+                    <label>University / College</label>
+                    <input type="text" id="first-setup-school" placeholder="Enter your school name">
+                </div>
+                <div class="form-group">
+                    <label>Department / Position</label>
+                    <input type="text" id="first-setup-dept" placeholder="Enter your department/position">
+                </div>
+                <div class="form-group">
+                    <label>Internship Start Date</label>
+                    <input type="date" id="first-setup-start-date">
+                </div>
+                <div class="form-group">
+                    <label>Required OJT Hours</label>
+                    <input type="number" id="first-setup-goal" value="250">
+                </div>
+                <button type="button" class="save-profile-btn" id="save-first-time-profile-btn">Complete Workspace Setup</button>
+                <button type="button" class="save-profile-btn secondary-auth-action-btn" id="back-to-auth-from-setup-btn">Back to Sign In</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="forgot-password-modal" style="display: none; z-index: 10000;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reset Password</h2>
+                <span class="material-icons-sharp close-modal" id="close-forgot-password-modal">close</span>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="font-size:0.8rem; margin-bottom:1rem;">Enter your email address to receive a password reset link.</p>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="reset-email" placeholder="Enter your email address">
+                </div>
+                <button type="button" class="save-profile-btn" id="send-reset-email-btn">Send Reset Link</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="main-app-layout" style="display: none;">
+        <aside>
+            <div class="top">
+                <div class="logo">
+                    <img src="./assets/logo ojt.png" alt="Logo">
+                    <h2 class="primaryvariant">Metric</h2>
+                </div>
+                <div class="close" id="close-btn">
+                    <span class="material-icons-sharp">close</span>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <a href="#" id="nav-dashboard" class="active">
+                    <span class="material-icons-sharp">dashboard</span>
+                    <h3>Dashboard</h3>
+                </a>
+                <a href="#" id="nav-calendar">
+                    <span class="material-icons-sharp">calendar_month</span>
+                    <h3>Calendar</h3>
+                </a>
+                <a href="#" id="nav-dtr">
+                    <span class="material-icons-sharp">content_paste</span>
+                    <h3>Daily Time Record</h3>
+                </a>
+                <a href="#" id="nav-download">
+                    <span class="material-icons-sharp">download</span>
+                    <h3>Download DTR</h3>
+                </a>
+                <a href="#" id="nav-logout">
+                    <span class="material-icons-sharp">logout</span>
+                    <h3>Logout</h3>
+                </a>
+            </div>
+        </aside>
+        
+        <main>
+            <div class="top-header-right">
+                <button id="menu-btn">
+                    <span class="material-icons-sharp">menu</span>
+                </button>
+                
+                <div class="theme-switch-wrapper main-app-theme-toggle">
+                    <div class="theme-switch-pill">
+                        <span class="material-icons-sharp icon-light">light_mode</span>
+                        <span class="material-icons-sharp icon-dark">dark_mode</span>
+                        <div class="theme-switch-handle"></div>
+                    </div>
+                </div>
+
+                <div class="profile-nav" id="trigger-profile-modal-btn">
+                    <div class="info">
+                        <p>Hey, <b id="header-user-name">User</b></p>
+                        <small class="text-muted">Intern</small>
+                    </div>
+                    <div class="profile-photo-icon">
+                        <span class="material-icons-sharp">account_circle</span>
+                    </div>
+                </div>
+            </div>
+
+            <section id="dashboard-view">
+                <h1>Dashboard</h1>
+                
+                <div class="profile-banner">
+                    <div class="profile-details">
+                        <span class="badge">Current Internship</span>
+                        <h2 id="student-name">Intern Name</h2>
+                        <div class="sub-details identity-rows">
+                            <p><span class="material-icons-sharp">school</span><span id="display-school">University</span></p>
+                            <p><span class="material-icons-sharp">work</span><span id="display-dept">Department/Position</span></p>
+                        </div>
+                        <div class="current-timeline-badges">
+                            <p><span class="material-icons-sharp">date_range</span> <b>Start:</b> <span id="display-start-date">--</span></p>
+                            <p><span class="material-icons-sharp">event_available</span> <b>Est. End:</b> <span id="display-end-date">--</span></p>
+                        </div>
+                    </div>
+
+                    <div class="intern-progress">
+                        <h3>Internship Progress</h3>
+                        <div class="progress-bar-wrapper">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                        <small class="text-muted">0% Completed</small>    
+                    </div>
+                </div>
+
+                <div class="insights">
+                    <div class="total-goal">
+                        <span class="material-icons-sharp">flag</span>
+                        <div class="middle">
+                            <div class="left">
+                                <h3>TOTAL GOAL</h3>
+                                <h1>0 Hours</h1>
+                            </div>
+                        </div>
+                    </div>  
+                    <div class="hours-earned">
+                        <span class="material-icons-sharp">check_circle</span>
+                        <div class="middle">
+                            <div class="left">
+                                <h3>HOURS EARNED</h3>
+                                <h1 id="hours-rendered-text">0 Hours</h1>
+                            </div>   
+                        </div> 
+                    </div> 
+                    <div class="hours-to-go">
+                        <span class="material-icons-sharp">hourglass_empty</span>
+                        <div class="middle">
+                            <div class="left">
+                                <h3>HOURS TO GO</h3>
+                                <h1 id="remaining-hours-text">0 Hours</h1>
+                            </div>   
+                        </div>
+                    </div>
+                    <div class="days-remaining">
+                        <span class="material-icons-sharp">calendar_month</span>
+                        <div class="middle">
+                            <div class="left">
+                                <h3>EST. DAYS LEFT</h3>
+                                <h1 id="days-remaining-text">0 Days</h1>
+                            </div>   
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-bottom-row">
+                    <div class="preview-card dtr-preview">
+                        <div class="card-header">
+                            <h2>Daily Time Record Preview</h2>
+                            <span class="material-icons-sharp shortcut-icon" id="shortcut-to-dtr" title="Open Full DTR">open_in_new</span>
+                        </div>
+                        <div class="responsive-table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2" style="width: 25%;">Date</th>
+                                        <th colspan="2" style="width: 30%;">Morning Session (AM)</th>
+                                        <th colspan="2" style="width: 30%;">Afternoon Session (PM)</th>
+                                        <th rowspan="2" style="width: 15%;">Total Hours</th>
+                                    </tr>
+                                    <tr>
+                                        <th>Time In</th>
+                                        <th>Time Out</th>
+                                        <th>Time In</th>
+                                        <th>Time Out</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dtr-rows-preview">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="preview-card calendar-preview">
+                        <div class="card-header">
+                            <h2>Calendar Preview</h2>
+                            <span class="material-icons-sharp shortcut-icon" id="shortcut-to-calendar" title="Open Full Calendar">open_in_new</span>
+                        </div>
+                        <div class="custom-calendar-container">
+                            <div class="calendar-header-nav">
+                                <h3 id="calendar-month-year">Month Year</h3>
+                                <div class="calendar-nav-buttons">
+                                    <button type="button" class="nav-btn" id="prev-month"><span class="material-icons-sharp">chevron_left</span></button>
+                                    <button type="button" class="nav-btn" id="next-month"><span class="material-icons-sharp">chevron_right</span></button>
+                                </div>
+                            </div>
+                            <div class="calendar-grid" id="preview-calendar-grid">
+                                </div>
+                        </div>
+                        <div class="mini-note">
+                            <span class="material-icons-sharp">visibility</span>
+                            <small>Attendance tracker preview. Open the full tab matrix to log active everyday shifts.</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="calendar-view" style="display: none;">
+                <h1>Calendar Workspace</h1>
+                
+                <div class="calendar-split-container">
+                    <div class="calendar-section">
+                        <h2>
+                            <span class="material-icons-sharp">calendar_month</span>
+                            Log Internship Attendance
+                        </h2>
+                        <div class="calendar-picker-box">
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="shift-date-picker">Select Date:</label>
+                                <input type="date" id="shift-date-picker">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="shift-status-picker">Attendance Status:</label>
+                                <select id="shift-status-picker" class="custom-select-input">
+                                    <option value="present">Present (Standard Shift Hours)</option>
+                                    <option value="half-day">Half-day (Standard 4.00 Hours)</option>
+                                    <option value="absent">Absent (0.00 Hours)</option>
+                                    <option value="holiday">Official Holiday (0.00 Hours)</option>
+                                    <option value="custom">Custom Manual Time Input</option>
+                                </select>
+                            </div>
+
+                            <div id="manual-time-inputs" style="display: none; background: var(--color-background); padding: var(--padding-1); border-radius: var(--border-radius-2); margin-bottom: 1.5rem; border: 1px dashed var(--color-info-dark);">
+                                <h4 style="margin-bottom: 0.8rem; font-weight: 700; color: var(--color-dark);">Custom Shift Settings</h4>
+                                <div class="manual-grid-row">
+                                    <div class="form-group"><label>AM Time In</label><input type="hidden" id="custom-am-in" value="08:00"><div class="metric-time-picker" data-time-target="custom-am-in"></div></div>
+                                    <div class="form-group"><label>AM Time Out</label><input type="hidden" id="custom-am-out" value="12:00"><div class="metric-time-picker" data-time-target="custom-am-out"></div></div>
+                                </div>
+                                <div class="manual-grid-row">
+                                    <div class="form-group"><label>PM Time In</label><input type="hidden" id="custom-pm-in" value="1:00"><div class="metric-time-picker" data-time-target="custom-pm-in"></div></div>
+                                    <div class="form-group"><label>PM Time Out</label><input type="hidden" id="custom-pm-out" value="5:00"><div class="metric-time-picker" data-time-target="custom-pm-out"></div></div>
+                                </div>
+                                <div class="form-group-checkbox" style="margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; padding-top:0.4rem;">
+                                    <input type="checkbox" id="custom-no-lunch" style="width: auto; height:auto; cursor:pointer; appearance:checkbox;">
+                                    <label for="custom-no-lunch" style="font-size: 0.82rem; font-weight:600; cursor:pointer; user-select:none;">Continuous Shift (No Lunch Break Reduction)</label>
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Hours (Auto-Calculated)</label>
+                                    <input type="number" id="custom-total-hours" step="0.01" readonly style="background: var(--color-light); font-weight: 600;">
+                                </div>
+                            </div>
+                            <button type="button" class="log-shift-btn" id="confirm-log-btn">
+                                <span class="material-icons-sharp">done_all</span>
+                                Log Attendance Shift
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="google-calendar-card">
+                        <div class="gcal-header">
+                            <h2 id="gcal-month-year-title">Month Year</h2>
+                            <div class="calendar-nav-buttons">
+                                <button type="button" class="nav-btn" id="gcal-prev-month"><span class="material-icons-sharp">chevron_left</span></button>
+                                <button type="button" class="nav-btn" id="gcal-next-month"><span class="material-icons-sharp">chevron_right</span></button>
+                            </div>
+                        </div>
+                        <div class="gcal-wrapper">
+                            <div class="gcal-grid-header">
+                                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                            </div>
+                            <div class="gcal-grid-body" id="gcal-cells-container">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="dtr-view" style="display: none;">
+                <h1>Daily Time Record</h1>
+                
+                <div class="preview-card full-dtr-card" style="margin-top: 1rem;">
+                     <div class="card-header">
+                        <h2>Official Rendered Shift Logs Database Matrix</h2>
+                        <button type="button" class="action-clear-all-dtr-btn" id="clear-all-dtr-btn">
+                            <span class="material-icons-sharp">delete_sweep</span>
+                            Clear All
+                        </button>
+                    </div>
+                    <div class="responsive-table-wrapper">
+                        <table class="full-width-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 18%;">Date Logged</th>
+                                    <th colspan="2" style="width: 25%;">Morning Session (AM)</th>
+                                    <th colspan="2" style="width: 25%;">Afternoon Session (PM)</th>
+                                    <th rowspan="2" style="width: 14%;">Total Rendered Hours</th>
+                                    <th rowspan="2" style="width: 18%;">Actions Workspace</th>
+                                </tr>
+                                <tr>
+                                    <th>Time In</th><th>Time Out</th><th>Time In</th><th>Time Out</th>
+                                </tr>
+                            </thead>
+                            <tbody id="full-dtr-rows-root">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <footer>
+                <div class="footer-content">
+                    <p>© 2026 <span>Metric Internship Tracker</span> • Powered by Firebase Cloud Core</p>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Profile Settings</h2>
+                <span class="material-icons-sharp close-modal" id="close-modal-btn">close</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Student Name / Initials</label>
+                    <input type="text" id="input-name" placeholder="Enter student name">
+                </div>
+                <div class="form-group">
+                    <label>School / University</label>
+                    <input type="text" id="input-school" placeholder="Enter school name">
+                </div>
+                <div class="form-group">
+                    <label>Department / Track Position</label>
+                    <input type="text" id="input-dept" placeholder="Enter tracking department">
+                </div>
+                <div class="form-group">
+                    <label>Internship Start Date</label>
+                    <input type="date" id="input-start-date">
+                </div>
+                <div class="form-group">
+                    <label>Total Goal Hours</label>
+                    <input type="number" id="input-goal" placeholder="Enter goal hours">
+                </div>
+                
+                <button type="button" class="save-profile-btn" id="save-profile-btn">Save Changes</button>
+                
+                <button type="button" class="save-profile-btn destructive-red-action-btn" id="btn-delete-profile-session">
+                    <span class="material-icons-sharp" style="font-size:1rem; vertical-align:middle; margin-right:0.2rem;">delete_forever</span>
+                    Delete Account Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="delete-account-confirm-modal">
+        <div class="modal-content delete-account-confirm-content">
+            <div class="modal-header">
+                <h2>Delete Account?</h2>
+                <span class="material-icons-sharp close-modal" id="close-delete-account-confirm-modal">close</span>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="font-size:0.86rem; line-height:1.55;">
+                    Are you sure you want to permanently delete this account? This will remove the saved profile and Daily Time Record data.
+                </p>
+                <div class="delete-account-confirm-actions">
+                    <button type="button" class="save-profile-btn secondary-auth-action-btn" id="cancel-delete-account-btn">No, keep account</button>
+                    <button type="button" class="save-profile-btn destructive-red-action-btn" id="confirm-delete-account-btn">
+                        <span class="material-icons-sharp" style="font-size:1rem; vertical-align:middle; margin-right:0.2rem;">delete_forever</span>
+                        Yes, delete account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="edit-log-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Time Stamp Record</h2>
+                <span class="material-icons-sharp close-modal" id="close-edit-modal-btn">close</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-log-index">
+                <div class="form-group">
+                    <label>Date Target</label>
+                    <input type="text" id="edit-log-date-text" readonly style="background: var(--color-light); font-weight:600;">
+                </div>
+                <div class="manual-grid-row">
+                    <div class="form-group"><label>AM Time In</label><input type="hidden" id="edit-am-in"><div class="metric-time-picker" data-time-target="edit-am-in"></div></div>
+                    <div class="form-group"><label>AM Time Out</label><input type="hidden" id="edit-am-out"><div class="metric-time-picker" data-time-target="edit-am-out"></div></div>
+                </div>
+                <div class="manual-grid-row">
+                    <div class="form-group"><label>PM Time In</label><input type="hidden" id="edit-pm-in"><div class="metric-time-picker" data-time-target="edit-pm-in"></div></div>
+                    <div class="form-group"><label>PM Time Out</label><input type="hidden" id="edit-pm-out"><div class="metric-time-picker" data-time-target="edit-pm-out"></div></div>
+                </div>
+                <div class="form-group-checkbox" style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; padding-bottom:0.2rem;">
+                    <input type="checkbox" id="edit-no-lunch" style="width: auto; height:auto; cursor:pointer; appearance:checkbox;">
+                    <label for="edit-no-lunch" style="font-size: 0.82rem; font-weight:600; cursor:pointer; color: var(--color-dark); user-select:none;">Continuous Shift (No Lunch Break Reduction)</label>
+                </div>
+                <div class="form-group">
+                    <label>Total Rendered Hours Weight (Auto-Calculated)</label>
+                    <input type="number" id="edit-total-hours" step="0.01" readonly style="background: var(--color-light); font-weight:600;">
+                </div>
+                <div class="form-group">
+                    <label>Status Mapping Indicator</label>
+                    <select id="edit-status-type" class="custom-select-input">
+                        <option value="present">Present (Cyan Badge)</option>
+                        <option value="half-day">Half-day (Orange Badge)</option>
+                        <option value="custom">Custom / Manual (Blue Badge)</option>
+                        <option value="absent">Absent (Red Badge)</option>
+                        <option value="holiday">Holiday (Lavender Badge)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-top: 0.5rem;">
+                    <button type="button" class="save-profile-btn" id="save-edit-log-btn">Save Log Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, deleteUser, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAOKQw8lkEOaBtUVOMpgi7s0oyRoYD76r8",
+            authDomain: "metric-ojt.firebaseapp.com",
+            projectId: "metric-ojt",
+            storageBucket: "metric-ojt.appspot.com",
+            messagingSenderId: "1052980199476",
+            appId: "1:1052980199476:web:278de3b080d6f199ff8a61"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            window.firebaseAuth = getAuth(app);
+            window.firebaseDB = getFirestore(app);
+            window.firebaseCloudActiveState = true; 
+        } catch (e) {
+            window.firebaseCloudActiveState = false;
+        }
+
+        window.firebaseAuthMethods = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, deleteUser, sendPasswordResetEmail };
+        window.firebaseFirestoreMethods = { doc, setDoc, getDoc, updateDoc, deleteDoc };
+    </script>
+    <script src="./index.js"></script>
+</body>
+</html>
