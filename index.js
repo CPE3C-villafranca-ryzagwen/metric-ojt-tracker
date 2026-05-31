@@ -45,6 +45,12 @@ const forgotPasswordModal = document.getElementById("forgot-password-modal");
 const closeForgotPasswordModal = document.getElementById("close-forgot-password-modal");
 const sendResetEmailBtn = document.getElementById("send-reset-email-btn");
 const backToAuthFromSetupBtn = document.getElementById("back-to-auth-from-setup-btn");
+const appMessageModal = document.getElementById("app-message-modal");
+const appMessageTitle = document.getElementById("app-message-title");
+const appMessageText = document.getElementById("app-message-text");
+const appMessageIcon = document.getElementById("app-message-icon");
+const closeAppMessageModal = document.getElementById("close-app-message-modal");
+const appMessageOkBtn = document.getElementById("app-message-ok-btn");
 
 const progressFill = document.querySelector(".progress-bar-fill");
 const progressText = document.querySelector(".intern-progress small");
@@ -142,6 +148,46 @@ function redirectToAuthenticationPage() {
     toggleLoadingScreen(false);
     toggleOverlayPanelVisibility(false);
 }
+
+function getFriendlyAppMessage(messageOrError) {
+    const rawMessage = typeof messageOrError === "string"
+        ? messageOrError
+        : (messageOrError?.message || "Please try again.");
+    const errorCode = typeof messageOrError === "object" ? messageOrError?.code : "";
+    const normalized = `${errorCode} ${rawMessage}`.toLowerCase();
+
+    if (normalized.includes("auth/invalid-credential") || normalized.includes("auth/wrong-password")) {
+        return "The email or password you entered is incorrect.";
+    }
+    if (normalized.includes("auth/user-not-found")) return "No account was found with that email address.";
+    if (normalized.includes("auth/email-already-in-use")) return "That email is already registered. Please sign in instead.";
+    if (normalized.includes("auth/invalid-email")) return "Please enter a valid email address.";
+    if (normalized.includes("auth/weak-password")) return "Please use a stronger password with at least 6 characters.";
+    if (normalized.includes("auth/too-many-requests")) return "Too many attempts. Please wait a moment and try again.";
+    if (normalized.includes("auth/popup-closed-by-user")) return "Google sign-in was cancelled. Please try again.";
+    if (normalized.includes("auth/popup-blocked")) return "Your browser blocked the Google sign-in popup. Please allow popups for this site.";
+    if (normalized.includes("auth/unauthorized-domain")) return "This website is not yet allowed in Firebase Authentication settings.";
+    if (normalized.includes("auth/account-exists-with-different-credential")) return "An account already exists with this email using a different sign-in method.";
+    if (normalized.includes("auth/requires-recent-login")) return "For security, please sign in again before deleting your account.";
+
+    return rawMessage.replace(/^firebase:\s*/i, "").replace(/\s*\(auth\/[^)]+\)\.?$/i, ".");
+}
+
+function showAppMessage(messageOrError, title = "Metric Notice", type = "info") {
+    appMessageTitle.textContent = title;
+    appMessageText.textContent = getFriendlyAppMessage(messageOrError);
+    appMessageIcon.textContent = type === "success" ? "check_circle" : type === "error" ? "error" : "info";
+    appMessageModal.classList.remove("success", "error", "info");
+    appMessageModal.classList.add(type);
+    appMessageModal.style.display = "flex";
+}
+
+function closeAppMessage() {
+    appMessageModal.style.display = "none";
+}
+
+closeAppMessageModal.addEventListener("click", closeAppMessage);
+appMessageOkBtn.addEventListener("click", closeAppMessage);
 
 function getFormattedAcademicDate(dateString) {
     if (!dateString) return "--";
@@ -251,12 +297,12 @@ closeForgotPasswordModal.addEventListener("click", () => {
 sendResetEmailBtn.addEventListener("click", async () => {
     const email = document.getElementById("reset-email").value.trim();
     if (!email) {
-        alert("Please enter your email address.");
+        showAppMessage("Please enter your email address.", "Email Required", "info");
         return;
     }
 
     if (!window.firebaseCloudActiveState) {
-        alert("Firebase is not active. Password reset is only available with cloud authentication.");
+        showAppMessage("Password reset is only available when cloud authentication is active.", "Password Reset", "error");
         return;
     }
 
@@ -277,21 +323,21 @@ sendResetEmailBtn.addEventListener("click", async () => {
         });
 
         console.log("Password reset email sent successfully");
-        alert("Password reset email sent! Please check your inbox (and spam folder) for the reset link.");
+        showAppMessage("Password reset email sent. Please check your inbox and spam folder for the reset link.", "Reset Link Sent", "success");
         forgotPasswordModal.style.display = "none";
         document.getElementById("reset-email").value = "";
     } catch (error) {
         console.error("Password Reset Error:", error);
         if (error.code === 'auth/user-not-found') {
-            alert("No account found with this email address.");
+            showAppMessage("No account found with this email address.", "Password Reset", "error");
         } else if (error.code === 'auth/invalid-email') {
-            alert("Invalid email address format.");
+            showAppMessage("Invalid email address format.", "Password Reset", "error");
         } else if (error.code === 'auth/too-many-requests') {
-            alert("Too many requests. Please try again later.");
+            showAppMessage("Too many requests. Please try again later.", "Password Reset", "error");
         } else if (error.code === 'auth/unauthorized-continue-uri') {
-            alert("Password reset failed because the reset redirect URL is not authorized in Firebase.");
+            showAppMessage("Password reset failed because the reset redirect URL is not authorized in Firebase.", "Password Reset", "error");
         } else {
-            alert("Password Reset Error: " + error.message);
+            showAppMessage(error, "Password Reset", "error");
         }
     }
 });
@@ -356,7 +402,7 @@ function listenToUserSessionState() {
             }
         } catch (error) {
             console.error("Auth State Restore Error:", error);
-            alert("Authentication session failed to load: " + error.message);
+            showAppMessage(error, "Session Error", "error");
             currentActiveUid = null; appData = null; localStorage.removeItem("METRIC_PERSISTED_UID");
             mainAppLayout.style.display = "none"; toggleLoadingScreen(false); toggleOverlayPanelVisibility(false);
         }
@@ -376,8 +422,8 @@ registerTriggerBtn.addEventListener("click", async () => {
     const email = document.getElementById("reg-email").value; const password = document.getElementById("reg-password").value;
     const confirmPassword = document.getElementById("reg-confirm-password").value;
 
-    if (!email || !password || !confirmPassword) { alert("Please fill out parameters."); return; }
-    if (password !== confirmPassword) { alert("Password mismatch discrepancy."); return; }
+    if (!email || !password || !confirmPassword) { showAppMessage("Please complete all registration fields.", "Missing Details", "info"); return; }
+    if (password !== confirmPassword) { showAppMessage("The password confirmation does not match.", "Password Mismatch", "error"); return; }
 
     appData = { studentName: "OJT Intern", school: "BSU", department: "CpE", startDate: new Date().toISOString().split('T')[0], totalGoalHours: 250, hoursEarned: 0.00, logs: [], needsProfileSetup: true };
 
@@ -393,7 +439,7 @@ registerTriggerBtn.addEventListener("click", async () => {
         currentActiveUid = userCredential.user.uid; localStorage.setItem("METRIC_PERSISTED_UID", currentActiveUid);
         await setDoc(doc(window.firebaseDB, "users", currentActiveUid), appData);
         document.getElementById("first-time-setup-modal").style.display = "flex";
-    } catch (error) { alert("Registration Error: " + error.message); }
+    } catch (error) { showAppMessage(error, "Registration Error", "error"); }
 });
 
 document.getElementById("save-first-time-profile-btn").addEventListener("click", async () => {
@@ -401,7 +447,7 @@ document.getElementById("save-first-time-profile-btn").addEventListener("click",
     const dept = document.getElementById("first-setup-dept").value; const startDate = document.getElementById("first-setup-start-date").value;
     const goal = parseFloat(document.getElementById("first-setup-goal").value);
 
-    if (!name || !school || !dept || !startDate || isNaN(goal)) { alert("Please fill profile parameters."); return; }
+    if (!name || !school || !dept || !startDate || isNaN(goal)) { showAppMessage("Please complete your profile information.", "Profile Setup", "info"); return; }
 
     appData = {
         ...appData,
@@ -444,14 +490,14 @@ loginTriggerBtn.addEventListener("click", async () => {
             appData = JSON.parse(cachedSandbox); currentActiveUid = "LOCAL_SANDBOX_USER_ID";
             localStorage.setItem("METRIC_PERSISTED_UID", currentActiveUid);
             toggleOverlayPanelVisibility(true); mainAppLayout.style.display = "block"; synchronizeSystemUIPanels();
-        } else { alert("No local profile cache active."); }
+        } else { showAppMessage("No local profile cache is active.", "Sign In", "info"); }
         return;
     }
     try {
         const { signInWithEmailAndPassword } = window.firebaseAuthMethods;
         const userCred = await signInWithEmailAndPassword(window.firebaseAuth, email, password);
         localStorage.setItem("METRIC_PERSISTED_UID", userCred.user.uid);
-    } catch (error) { alert("Login Error: " + error.message); }
+    } catch (error) { showAppMessage(error, "Login Error", "error"); }
 });
 
 document.querySelectorAll(".google-login-action-btn").forEach(btn => {
@@ -471,15 +517,15 @@ document.querySelectorAll(".google-login-action-btn").forEach(btn => {
         } catch (error) {
             console.error("Google Auth Error:", error);
             if (error.code === 'auth/popup-closed-by-user') {
-                alert("Google sign-in was cancelled. Please try again.");
+                showAppMessage(error, "Google Sign-In", "info");
             } else if (error.code === 'auth/popup-blocked') {
-                alert("Popup was blocked by your browser. Please allow popups for this site and try again.");
+                showAppMessage(error, "Google Sign-In", "error");
             } else if (error.code === 'auth/unauthorized-domain') {
-                alert("This domain is not authorized in Firebase Authentication settings.");
+                showAppMessage(error, "Google Sign-In", "error");
             } else if (error.code === 'auth/account-exists-with-different-credential') {
-                alert("An account already exists with this email using a different sign-in method.");
+                showAppMessage(error, "Google Sign-In", "error");
             } else {
-                alert("Google Authorization Error: " + error.message);
+                showAppMessage(error, "Google Sign-In", "error");
             }
         }
     });
@@ -557,9 +603,9 @@ confirmDeleteAccountBtn.addEventListener("click", async () => {
     } catch (err) {
         console.error("Permanent Account Delete Error:", err);
         if (err.code === "auth/requires-recent-login") {
-            alert("For security, please log out, sign in again, then delete your account.");
+            showAppMessage(err, "Delete Account", "error");
         } else {
-            alert("Delete Account Error: " + (err.message || "Please try again."));
+            showAppMessage(err, "Delete Account", "error");
         }
     } finally {
         confirmDeleteAccountBtn.disabled = false;
@@ -621,7 +667,7 @@ closeBtn.addEventListener("click", () => {
 // ===================== MS-EXCEL SHEET CONVERTER ENGINE =====================
 const triggerExcelSpreadsheetDownload = (e) => {
     if (e) e.preventDefault();
-    if (!appData || !appData.logs || appData.logs.length === 0) { alert("No logging records found to export."); return; }
+    if (!appData || !appData.logs || appData.logs.length === 0) { showAppMessage("No logging records found to export.", "Download DTR", "info"); return; }
     
     const sortedLogsForExcel = [...appData.logs].sort((a, b) => new Date(a.date) - new Date(b.date));
     const calculatedEnd = calculateEstimatedEndDate(appData.startDate, appData.totalGoalHours, appData.logs);
@@ -1066,8 +1112,8 @@ statusPicker.addEventListener("change", () => {
 
 document.getElementById("confirm-log-btn").addEventListener("click", async () => {
     const datePicker = document.getElementById("shift-date-picker"); const targetDate = datePicker.value; const chosenStatus = statusPicker.value;
-    if (!targetDate) { alert("Please select a valid date."); return; }
-    if (appData.logs.some(l => l.date === targetDate)) { alert("Log already exists."); return; }
+    if (!targetDate) { showAppMessage("Please select a valid date.", "Attendance Log", "info"); return; }
+    if (appData.logs.some(l => l.date === targetDate)) { showAppMessage("A log already exists for this date.", "Attendance Log", "info"); return; }
 
     let hoursToLog = 0; let amIn = "--", amOut = "--", pmIn = "--", pmOut = "--";
     if (chosenStatus === "present") { hoursToLog = 8; amIn = "8:00 AM"; amOut = "12:00 PM"; pmIn = "1:00 PM"; pmOut = "5:00 PM"; }
@@ -1083,7 +1129,7 @@ document.getElementById("confirm-log-btn").addEventListener("click", async () =>
         pmOut = formatTimeInputToDisplay(pmOut);
     }
     appData.hoursEarned += hoursToLog; appData.logs.unshift({ date: targetDate, amIn, amOut, pmIn, pmOut, total: hoursToLog, type: chosenStatus, noLunchBreak: document.getElementById("custom-no-lunch").checked });
-    await pushDataUpdateToCloudFirestore(); synchronizeSystemUIPanels(); alert("Logged successfully!");
+    await pushDataUpdateToCloudFirestore(); synchronizeSystemUIPanels(); showAppMessage("Attendance log saved successfully.", "Log Saved", "success");
 });
 
 window.triggerDeleteCloudLogEntry = async function(index) {
@@ -1095,7 +1141,7 @@ window.triggerDeleteCloudLogEntry = async function(index) {
 
 clearAllDtrBtn.addEventListener("click", async () => {
     if (!appData || !appData.logs || appData.logs.length === 0) {
-        alert("No DTR records to clear.");
+        showAppMessage("No DTR records to clear.", "Daily Time Record", "info");
         return;
     }
 
@@ -1106,7 +1152,7 @@ clearAllDtrBtn.addEventListener("click", async () => {
     appData.hoursEarned = 0.00;
     await pushDataUpdateToCloudFirestore();
     synchronizeSystemUIPanels();
-    alert("All DTR records have been cleared.");
+    showAppMessage("All DTR records have been cleared.", "Daily Time Record", "success");
 });
 
 setTimeout(listenToUserSessionState, 500);
