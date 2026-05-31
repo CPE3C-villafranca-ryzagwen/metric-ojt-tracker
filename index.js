@@ -604,6 +604,20 @@ navDtr.addEventListener("click", (e) => { e.preventDefault(); showWorkspaceView(
 shortcutToCalendar.addEventListener("click", () => showWorkspaceView("calendar"));
 shortcutToDtr.addEventListener("click", () => showWorkspaceView("dtr"));
 
+menuBtn.addEventListener("click", () => {
+    sideMenu.classList.add("sidebar-open");
+});
+
+closeBtn.addEventListener("click", () => {
+    sideMenu.classList.remove("sidebar-open");
+});
+
+[navDashboard, navCalendar, navDtr, navDownload, navLogout].forEach(navItem => {
+    navItem.addEventListener("click", () => {
+        sideMenu.classList.remove("sidebar-open");
+    });
+});
+
 // ===================== MS-EXCEL SHEET CONVERTER ENGINE =====================
 const triggerExcelSpreadsheetDownload = (e) => {
     if (e) e.preventDefault();
