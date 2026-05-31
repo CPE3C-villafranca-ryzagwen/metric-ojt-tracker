@@ -823,7 +823,7 @@ footer .footer-content span { color: var(--color-primary); font-weight: 700; }
         word-break: normal;
     }
     .top-header-right {
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 0.75rem;
         padding-top: 0.25rem;
         margin-bottom: 1rem;
@@ -837,10 +837,16 @@ footer .footer-content span { color: var(--color-primary); font-weight: 700; }
         border-radius: var(--border-radius-2);
         background: var(--color-white);
         box-shadow: var(--box-shadow);
+        margin-right: auto;
+        flex-shrink: 0;
+    }
+    .top-header-right .theme-switch-wrapper {
+        flex-shrink: 0;
     }
     .top-header-right .profile-nav {
         gap: 0.5rem;
         padding: 0.2rem;
+        flex-shrink: 0;
     }
     .top-header-right .profile-nav .info p {
         font-size: 0.9rem;
