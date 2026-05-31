@@ -162,6 +162,25 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="logout-confirm-modal">
+        <div class="modal-content app-confirm-content">
+            <div class="modal-header">
+                <div class="app-message-title-row">
+                    <span class="material-icons-sharp app-message-icon">logout</span>
+                    <h2>Log Out?</h2>
+                </div>
+                <span class="material-icons-sharp close-modal" id="close-logout-confirm-modal">close</span>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted app-message-text">Are you sure you want to log out of your Metric workspace?</p>
+                <div class="app-confirm-actions">
+                    <button type="button" class="save-profile-btn secondary-auth-action-btn" id="cancel-logout-btn">Cancel</button>
+                    <button type="button" class="save-profile-btn" id="confirm-logout-btn">Yes, log out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container" id="main-app-layout" style="display: none;">
         <aside>
             <div class="top">

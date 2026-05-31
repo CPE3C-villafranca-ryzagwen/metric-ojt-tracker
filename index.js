@@ -51,6 +51,10 @@ const appMessageText = document.getElementById("app-message-text");
 const appMessageIcon = document.getElementById("app-message-icon");
 const closeAppMessageModal = document.getElementById("close-app-message-modal");
 const appMessageOkBtn = document.getElementById("app-message-ok-btn");
+const logoutConfirmModal = document.getElementById("logout-confirm-modal");
+const closeLogoutConfirmModal = document.getElementById("close-logout-confirm-modal");
+const cancelLogoutBtn = document.getElementById("cancel-logout-btn");
+const confirmLogoutBtn = document.getElementById("confirm-logout-btn");
 
 const progressFill = document.querySelector(".progress-bar-fill");
 const progressText = document.querySelector(".intern-progress small");
@@ -531,15 +535,27 @@ document.querySelectorAll(".google-login-action-btn").forEach(btn => {
     });
 });
 
-navLogout.addEventListener("click", async (e) => {
+async function performLogout() {
+    logoutConfirmModal.style.display = "none";
+    localStorage.removeItem("METRIC_PERSISTED_UID");
+    localStorage.removeItem(ACTIVE_WORKSPACE_VIEW_KEY);
+    if (!window.firebaseCloudActiveState) { location.reload(); return; }
+    const { signOut } = window.firebaseAuthMethods;
+    await signOut(window.firebaseAuth);
+    location.reload();
+}
+
+function closeLogoutConfirmModalPanel() {
+    logoutConfirmModal.style.display = "none";
+}
+
+navLogout.addEventListener("click", (e) => {
     e.preventDefault();
-    if (confirm("Log out?")) {
-        localStorage.removeItem("METRIC_PERSISTED_UID");
-        localStorage.removeItem(ACTIVE_WORKSPACE_VIEW_KEY);
-        if (!window.firebaseCloudActiveState) { location.reload(); return; }
-        const { signOut } = window.firebaseAuthMethods; await signOut(window.firebaseAuth); location.reload();
-    }
+    logoutConfirmModal.style.display = "flex";
 });
+closeLogoutConfirmModal.addEventListener("click", closeLogoutConfirmModalPanel);
+cancelLogoutBtn.addEventListener("click", closeLogoutConfirmModalPanel);
+confirmLogoutBtn.addEventListener("click", performLogout);
 
 const closeDeleteAccountModal = () => {
     deleteAccountConfirmModal.style.display = "none";
