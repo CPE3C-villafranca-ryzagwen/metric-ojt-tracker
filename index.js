@@ -6,6 +6,7 @@ const closeBtn = document.getElementById("close-btn");
 const navDashboard = document.getElementById("nav-dashboard");
 const navCalendar = document.getElementById("nav-calendar");
 const navDtr = document.getElementById("nav-dtr");
+const navJournal = document.getElementById("nav-journal");
 const navDownload = document.getElementById("nav-download");
 const navLogout = document.getElementById("nav-logout");
 const clearAllDtrBtn = document.getElementById("clear-all-dtr-btn");
@@ -13,8 +14,10 @@ const clearAllDtrBtn = document.getElementById("clear-all-dtr-btn");
 const dashboardView = document.getElementById("dashboard-view");
 const calendarView = document.getElementById("calendar-view");
 const dtrView = document.getElementById("dtr-view");
+const journalView = document.getElementById("journal-view");
 const shortcutToDtr = document.getElementById("shortcut-to-dtr");
 const shortcutToCalendar = document.getElementById("shortcut-to-calendar");
+const shortcutToJournal = document.getElementById("shortcut-to-journal");
 const mainAppLayout = document.getElementById("main-app-layout");
 const setupOverlayPanel = document.getElementById("profile-setup-view");
 const appLoadingScreen = document.getElementById("app-loading-screen");
@@ -32,6 +35,36 @@ const confirmDeleteAccountBtn = document.getElementById("confirm-delete-account-
 const editLogModal = document.getElementById("edit-log-modal");
 const closeEditModalBtn = document.getElementById("close-edit-modal-btn");
 const saveEditLogBtn = document.getElementById("save-edit-log-btn");
+const deleteEntryConfirmModal = document.getElementById("delete-entry-confirm-modal");
+const closeDeleteEntryConfirmModal = document.getElementById("close-delete-entry-confirm-modal");
+const cancelDeleteEntryBtn = document.getElementById("cancel-delete-entry-btn");
+const confirmDeleteEntryBtn = document.getElementById("confirm-delete-entry-btn");
+const clearDtrConfirmModal = document.getElementById("clear-dtr-confirm-modal");
+const closeClearDtrConfirmModal = document.getElementById("close-clear-dtr-confirm-modal");
+const cancelClearDtrBtn = document.getElementById("cancel-clear-dtr-btn");
+const confirmClearDtrBtn = document.getElementById("confirm-clear-dtr-btn");
+const deleteJournalConfirmModal = document.getElementById("delete-journal-confirm-modal");
+const closeDeleteJournalConfirmModal = document.getElementById("close-delete-journal-confirm-modal");
+const cancelDeleteJournalBtn = document.getElementById("cancel-delete-journal-btn");
+const confirmDeleteJournalBtn = document.getElementById("confirm-delete-journal-btn");
+const saveJournalEntryBtn = document.getElementById("save-journal-entry-btn");
+const journalDateInput = document.getElementById("journal-date");
+const journalTitleInput = document.getElementById("journal-title");
+const journalMoodInput = document.getElementById("journal-mood");
+const journalMoodOptions = document.getElementById("journal-mood-options");
+const journalCurrentDateTitle = document.getElementById("journal-current-date-title");
+const journalEntryText = document.getElementById("journal-entry-text");
+const journalPreviewList = document.getElementById("journal-preview-list");
+const journalEntryList = document.getElementById("journal-entry-list");
+const editJournalModal = document.getElementById("edit-journal-modal");
+const closeEditJournalModal = document.getElementById("close-edit-journal-modal");
+const saveEditJournalBtn = document.getElementById("save-edit-journal-btn");
+const editJournalIdInput = document.getElementById("edit-journal-id");
+const editJournalDateInput = document.getElementById("edit-journal-date");
+const editJournalTitleInput = document.getElementById("edit-journal-title");
+const editJournalMoodInput = document.getElementById("edit-journal-mood");
+const editJournalMoodOptions = document.getElementById("edit-journal-mood-options");
+const editJournalEntryText = document.getElementById("edit-journal-entry-text");
 
 // IDENTITY GATEWAY RE-ALLOCATION SELECTORS
 const loginFieldsBox = document.getElementById("login-fields-box");
@@ -40,6 +73,8 @@ const goToRegisterLink = document.getElementById("go-to-register-trigger");
 const goToLoginLink = document.getElementById("go-to-login-link");
 const loginTriggerBtn = document.getElementById("login-trigger-btn");
 const registerTriggerBtn = document.getElementById("core-register-trigger-action-btn");
+const registerPasswordInput = document.getElementById("reg-password");
+const passwordStrengthMeter = document.getElementById("password-strength-meter");
 const forgotPasswordTrigger = document.getElementById("forgot-password-trigger");
 const forgotPasswordModal = document.getElementById("forgot-password-modal");
 const closeForgotPasswordModal = document.getElementById("close-forgot-password-modal");
@@ -61,6 +96,9 @@ const progressText = document.querySelector(".intern-progress small");
 
 // Global Cache Storage States
 let appData = null; let currentActiveUid = null; let currentNavDate = new Date();
+let pendingDeleteLogIndex = null;
+let editingJournalId = null;
+let pendingDeleteJournalId = null;
 const ACTIVE_WORKSPACE_VIEW_KEY = "METRIC_ACTIVE_WORKSPACE_VIEW";
 const THEME_STORAGE_KEY = "METRIC_ACTIVE_THEME";
 
@@ -129,7 +167,139 @@ function renderDtrTables() {
     });
 }
 
-function synchronizeSystemUIPanels() { updateUIMetrics(); renderMonthlyCalendars(); renderDtrTables(); }
+function escapeHTML(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function ensureAppCollections() {
+    if (!appData) return;
+    if (!Array.isArray(appData.logs)) appData.logs = [];
+    if (!Array.isArray(appData.journals)) appData.journals = [];
+    appData.journals = appData.journals.map(entry => ({
+        id: entry.id || `journal-${entry.date || "entry"}-${Math.random().toString(36).slice(2, 8)}`,
+        ...entry
+    }));
+}
+
+function getSortedJournalEntries() {
+    ensureAppCollections();
+    if (!appData) return [];
+    return [...appData.journals].sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+const JOURNAL_MOODS = [
+    { label: "Happy", emoji: "😊" },
+    { label: "Neutral", emoji: "😐" },
+    { label: "Angry", emoji: "😠" },
+    { label: "Upset", emoji: "😔" },
+    { label: "Overwhelmed", emoji: "😵‍💫" },
+    { label: "Productive", emoji: "🚀" },
+    { label: "Confused", emoji: "😕" },
+    { label: "Bored", emoji: "🥱" },
+    { label: "Sleepy", emoji: "😴" },
+    { label: "Tired", emoji: "😪" },
+    { label: "Stressed", emoji: "😰" },
+    { label: "Proud", emoji: "🏆" }
+];
+
+function getJournalMoodMeta(mood) {
+    const rawMood = String(mood || "").trim();
+    const plainMood = rawMood.replace(/^[^\p{L}\p{N}]+/u, "").trim();
+    return JOURNAL_MOODS.find(item => item.label.toLowerCase() === rawMood.toLowerCase())
+        || JOURNAL_MOODS.find(item => item.label.toLowerCase() === plainMood.toLowerCase())
+        || JOURNAL_MOODS[0];
+}
+
+function normalizeJournalMood(mood) {
+    return getJournalMoodMeta(mood).label;
+}
+
+function updateJournalMoodPicker(container, input, emojiTarget, nextMood) {
+    if (!container || !input) return;
+    const moodMeta = getJournalMoodMeta(nextMood || input.value);
+    input.value = moodMeta.label;
+    if (emojiTarget) emojiTarget.textContent = moodMeta.emoji;
+    container.querySelectorAll(".journal-mood-option").forEach(button => {
+        button.classList.toggle("active", button.dataset.mood === moodMeta.label);
+    });
+}
+
+function renderJournalMoodPicker(container, input, emojiTarget) {
+    if (!container || !input) return;
+    container.innerHTML = JOURNAL_MOODS.map(mood => `
+        <button type="button" class="journal-mood-option" data-mood="${mood.label}">
+            <span>${mood.emoji}</span>${mood.label}
+        </button>
+    `).join("");
+    container.addEventListener("click", (event) => {
+        const button = event.target.closest(".journal-mood-option");
+        if (!button) return;
+        updateJournalMoodPicker(container, input, emojiTarget, button.dataset.mood);
+    });
+    updateJournalMoodPicker(container, input, emojiTarget, input.value);
+}
+
+function updateJournalComposerDateTitle() {
+    if (!journalCurrentDateTitle || !journalDateInput) return;
+    if (!journalDateInput.value) {
+        journalCurrentDateTitle.textContent = "Today";
+        return;
+    }
+    const date = new Date(journalDateInput.value);
+    journalCurrentDateTitle.textContent = date.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+    });
+}
+
+function createJournalItemHTML(entry) {
+    const text = escapeHTML(entry.text || "No description added.");
+    const mood = getJournalMoodMeta(entry.mood);
+    const title = escapeHTML(entry.title || "Untitled journal entry");
+    return `
+        <article class="journal-item" data-journal-id="${escapeHTML(entry.id)}">
+            <div class="journal-item-top">
+                <div class="journal-item-meta">
+                    <span class="journal-date">${getFormattedAcademicDate(entry.date)}</span>
+                    <h3>${title}</h3>
+                    <span class="journal-mood">${mood.emoji} ${escapeHTML(mood.label)}</span>
+                </div>
+                <div class="journal-actions">
+                    <button type="button" class="journal-menu-trigger" data-journal-id="${escapeHTML(entry.id)}" aria-label="Journal entry actions">
+                        <span class="material-icons-sharp">more_horiz</span>
+                    </button>
+                    <div class="journal-action-menu">
+                        <button type="button" data-journal-action="edit" data-journal-id="${escapeHTML(entry.id)}">Edit</button>
+                        <button type="button" data-journal-action="delete" data-journal-id="${escapeHTML(entry.id)}">Delete</button>
+                    </div>
+                </div>
+            </div>
+            <p>${text}</p>
+        </article>
+    `;
+}
+function renderJournalPanels() {
+    if (!journalPreviewList || !journalEntryList) return;
+    const entries = getSortedJournalEntries();
+
+    if (entries.length === 0) {
+        journalPreviewList.innerHTML = `<p class="text-muted">No journal entries yet.</p>`;
+        journalEntryList.innerHTML = `<p class="text-muted">No journal entries yet.</p>`;
+        return;
+    }
+
+    journalPreviewList.innerHTML = entries.slice(0, 3).map(createJournalItemHTML).join("");
+    journalEntryList.innerHTML = entries.map(createJournalItemHTML).join("");
+}
+
+function synchronizeSystemUIPanels() { ensureAppCollections(); updateUIMetrics(); renderMonthlyCalendars(); renderDtrTables(); renderJournalPanels(); }
 
 // ===================== HELPER UTILITIES =====================
 function toggleOverlayPanelVisibility(shouldHide) {
@@ -192,6 +362,16 @@ function closeAppMessage() {
 
 closeAppMessageModal.addEventListener("click", closeAppMessage);
 appMessageOkBtn.addEventListener("click", closeAppMessage);
+
+function openMobileSidebar() {
+    sideMenu.classList.add("sidebar-open");
+    document.body.classList.add("sidebar-drawer-open");
+}
+
+function closeMobileSidebar() {
+    sideMenu.classList.remove("sidebar-open");
+    document.body.classList.remove("sidebar-drawer-open");
+}
 
 function getFormattedAcademicDate(dateString) {
     if (!dateString) return "--";
@@ -275,6 +455,37 @@ const bindPasswordToggleVisibility = (iconId, inputId) => {
 bindPasswordToggleVisibility("toggle-login-pass", "auth-password");
 bindPasswordToggleVisibility("toggle-reg-pass", "reg-password");
 bindPasswordToggleVisibility("toggle-confirm-pass", "reg-confirm-password");
+
+function getPasswordStrength(password) {
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[a-z]/.test(password)) score += 1;
+    if (/\d/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+    if (!password) return { level: "", label: "Password strength" };
+    if (score <= 2) return { level: "weak", label: "Weak password" };
+    if (score <= 4) return { level: "medium", label: "Medium password" };
+    return { level: "strong", label: "Strong password" };
+}
+
+function updatePasswordStrengthMeter() {
+    const strength = getPasswordStrength(registerPasswordInput.value);
+    passwordStrengthMeter.classList.remove("visible", "weak", "medium", "strong");
+
+    if (!strength.level) {
+        passwordStrengthMeter.style.display = "none";
+        passwordStrengthMeter.innerHTML = `<span class="material-icons-sharp" style="font-size:0.85rem; vertical-align:middle;">info</span> Password must be 8+ chars with a number & uppercase letter.`;
+        return;
+    }
+
+    passwordStrengthMeter.style.display = "flex";
+    passwordStrengthMeter.classList.add("visible", strength.level);
+    passwordStrengthMeter.innerHTML = `<span class="material-icons-sharp" style="font-size:0.85rem; vertical-align:middle;">${strength.level === "strong" ? "check_circle" : "info"}</span> ${strength.label}`;
+}
+
+registerPasswordInput.addEventListener("input", updatePasswordStrengthMeter);
 
 // ROUTING INTERCEPT LOOPS
 goToRegisterLink.addEventListener("click", (e) => {
@@ -387,6 +598,7 @@ function listenToUserSessionState() {
                     totalGoalHours: 250,
                     hoursEarned: 0.00,
                     logs: [],
+                    journals: [],
                     email: user.email || "",
                     displayName: user.displayName || "",
                     needsProfileSetup: true,
@@ -394,6 +606,7 @@ function listenToUserSessionState() {
                 };
                 await setDoc(docRef, appData);
             }
+            ensureAppCollections();
 
             if (appData.needsProfileSetup || !appData.studentName || appData.studentName === "OJT Intern") {
                 toggleOverlayPanelVisibility(true);
@@ -429,7 +642,7 @@ registerTriggerBtn.addEventListener("click", async () => {
     if (!email || !password || !confirmPassword) { showAppMessage("Please complete all registration fields.", "Missing Details", "info"); return; }
     if (password !== confirmPassword) { showAppMessage("The password confirmation does not match.", "Password Mismatch", "error"); return; }
 
-    appData = { studentName: "OJT Intern", school: "BSU", department: "CpE", startDate: new Date().toISOString().split('T')[0], totalGoalHours: 250, hoursEarned: 0.00, logs: [], needsProfileSetup: true };
+    appData = { studentName: "OJT Intern", school: "BSU", department: "CpE", startDate: new Date().toISOString().split('T')[0], totalGoalHours: 250, hoursEarned: 0.00, logs: [], journals: [], needsProfileSetup: true };
 
     if (!window.firebaseCloudActiveState) {
         currentActiveUid = "LOCAL_SANDBOX_USER_ID"; localStorage.setItem("METRIC_PERSISTED_UID", currentActiveUid);
@@ -462,6 +675,7 @@ document.getElementById("save-first-time-profile-btn").addEventListener("click",
         totalGoalHours: goal,
         hoursEarned: appData?.hoursEarned || 0.00,
         logs: appData?.logs || [],
+        journals: appData?.journals || [],
         needsProfileSetup: false
     };
     await pushDataUpdateToCloudFirestore();
@@ -632,7 +846,7 @@ confirmDeleteAccountBtn.addEventListener("click", async () => {
 // ===================== WORKSPACE NAVIGATION SWITCHERS =====================
 function clearAllViewActiveStates() {
     document.querySelectorAll(".sidebar a").forEach(link => link.classList.remove("active"));
-    dashboardView.style.display = "none"; calendarView.style.display = "none"; dtrView.style.display = "none";
+    dashboardView.style.display = "none"; calendarView.style.display = "none"; dtrView.style.display = "none"; journalView.style.display = "none";
 }
 
 function showWorkspaceView(viewName, shouldPersist = true) {
@@ -646,6 +860,10 @@ function showWorkspaceView(viewName, shouldPersist = true) {
         navDtr.classList.add("active");
         dtrView.style.display = "block";
         renderDtrTables();
+    } else if (viewName === "journal") {
+        navJournal.classList.add("active");
+        journalView.style.display = "block";
+        renderJournalPanels();
     } else {
         viewName = "dashboard";
         navDashboard.classList.add("active");
@@ -663,21 +881,29 @@ function restoreActiveWorkspaceView() {
 navDashboard.addEventListener("click", (e) => { e.preventDefault(); showWorkspaceView("dashboard"); });
 navCalendar.addEventListener("click", (e) => { e.preventDefault(); showWorkspaceView("calendar"); });
 navDtr.addEventListener("click", (e) => { e.preventDefault(); showWorkspaceView("dtr"); });
+navJournal.addEventListener("click", (e) => { e.preventDefault(); showWorkspaceView("journal"); });
 shortcutToCalendar.addEventListener("click", () => showWorkspaceView("calendar"));
 shortcutToDtr.addEventListener("click", () => showWorkspaceView("dtr"));
+shortcutToJournal.addEventListener("click", () => showWorkspaceView("journal"));
 
 menuBtn.addEventListener("click", () => {
-    sideMenu.classList.add("sidebar-open");
+    openMobileSidebar();
 });
 
 closeBtn.addEventListener("click", () => {
-    sideMenu.classList.remove("sidebar-open");
+    closeMobileSidebar();
 });
 
-[navDashboard, navCalendar, navDtr, navDownload, navLogout].forEach(navItem => {
+[navDashboard, navCalendar, navDtr, navJournal, navDownload, navLogout].forEach(navItem => {
     navItem.addEventListener("click", () => {
-        sideMenu.classList.remove("sidebar-open");
+        closeMobileSidebar();
     });
+});
+
+document.addEventListener("click", (event) => {
+    if (!document.body.classList.contains("sidebar-drawer-open")) return;
+    if (sideMenu.contains(event.target) || menuBtn.contains(event.target)) return;
+    closeMobileSidebar();
 });
 
 // ===================== MS-EXCEL SHEET CONVERTER ENGINE =====================
@@ -1052,6 +1278,11 @@ function updateEditLogHoursField() {
 });
 
 initializeMetricTimePickers();
+if (journalDateInput) journalDateInput.value = new Date().toISOString().split('T')[0];
+renderJournalMoodPicker(journalMoodOptions, journalMoodInput, null);
+renderJournalMoodPicker(editJournalMoodOptions, editJournalMoodInput, null);
+updateJournalComposerDateTitle();
+if (journalDateInput) journalDateInput.addEventListener("change", updateJournalComposerDateTitle);
 
 window.openEditLogRowWorkspace = function(index) {
     if (!appData || !appData.logs || !appData.logs[index]) return;
@@ -1148,12 +1379,198 @@ document.getElementById("confirm-log-btn").addEventListener("click", async () =>
     await pushDataUpdateToCloudFirestore(); synchronizeSystemUIPanels(); showAppMessage("Attendance log saved successfully.", "Log Saved", "success");
 });
 
-window.triggerDeleteCloudLogEntry = async function(index) {
-    if (confirm("Delete entry?")) {
-        appData.hoursEarned = Math.max(0, appData.hoursEarned - appData.logs[index].total); appData.logs.splice(index, 1);
-        await pushDataUpdateToCloudFirestore(); synchronizeSystemUIPanels();
+saveJournalEntryBtn.addEventListener("click", async () => {
+    const date = journalDateInput.value;
+    const mood = journalMoodInput.value;
+    const title = journalTitleInput.value.trim();
+    const text = journalEntryText.value.trim();
+
+    if (!date) {
+        showAppMessage("Please select a journal date.", "Daily Journal", "info");
+        return;
     }
+
+    if (!text) {
+        showAppMessage("Please write a short journal entry before saving.", "Daily Journal", "info");
+        return;
+    }
+
+    ensureAppCollections();
+    const existingIndex = editingJournalId
+        ? appData.journals.findIndex(entry => entry.id === editingJournalId)
+        : appData.journals.findIndex(entry => entry.date === date);
+    const entryPayload = {
+        id: editingJournalId || appData.journals[existingIndex]?.id || `journal-${Date.now()}`,
+        date,
+        title,
+        mood,
+        text,
+        updatedAt: new Date().toISOString()
+    };
+
+    if (existingIndex >= 0) {
+        appData.journals[existingIndex] = entryPayload;
+    } else {
+        appData.journals.unshift(entryPayload);
+    }
+
+    await pushDataUpdateToCloudFirestore();
+    renderJournalPanels();
+    editingJournalId = null;
+    journalTitleInput.value = "";
+    journalEntryText.value = "";
+    updateJournalMoodPicker(journalMoodOptions, journalMoodInput, null, "Happy");
+    saveJournalEntryBtn.innerHTML = `<span class="material-icons-sharp" style="font-size:1rem; vertical-align:middle; margin-right:0.25rem;">save</span> Save Journal Entry`;
+    showAppMessage("Journal entry saved successfully.", "Daily Journal", "success");
+});
+
+function closeJournalMenus() {
+    document.querySelectorAll(".journal-item.menu-open").forEach(item => item.classList.remove("menu-open"));
+}
+
+function handleJournalActionClick(event) {
+    const menuTrigger = event.target.closest(".journal-menu-trigger");
+    if (menuTrigger) {
+        event.stopPropagation();
+        const targetItem = menuTrigger.closest(".journal-item");
+        const wasOpen = targetItem.classList.contains("menu-open");
+        closeJournalMenus();
+        if (!wasOpen) targetItem.classList.add("menu-open");
+        return;
+    }
+
+    const actionButton = event.target.closest("[data-journal-action]");
+    if (!actionButton) return;
+
+    const journalId = actionButton.dataset.journalId;
+    const action = actionButton.dataset.journalAction;
+    const targetEntry = appData?.journals?.find(entry => entry.id === journalId);
+    if (!targetEntry) return;
+
+    closeJournalMenus();
+
+    if (action === "edit") {
+        editingJournalId = journalId;
+        editJournalIdInput.value = journalId;
+        editJournalDateInput.value = targetEntry.date || "";
+        editJournalTitleInput.value = targetEntry.title || "";
+        editJournalEntryText.value = targetEntry.text || "";
+        updateJournalMoodPicker(editJournalMoodOptions, editJournalMoodInput, null, targetEntry.mood);
+        editJournalModal.style.display = "flex";
+        return;
+    }
+
+    if (action === "delete") {
+        pendingDeleteJournalId = journalId;
+        deleteJournalConfirmModal.style.display = "flex";
+    }
+}
+
+journalPreviewList.addEventListener("click", handleJournalActionClick);
+journalEntryList.addEventListener("click", handleJournalActionClick);
+document.addEventListener("click", (event) => {
+    if (event.target.closest(".journal-actions")) return;
+    closeJournalMenus();
+});
+
+function closeEditJournalModalPanel() {
+    editingJournalId = null;
+    editJournalModal.style.display = "none";
+}
+
+closeEditJournalModal.addEventListener("click", closeEditJournalModalPanel);
+saveEditJournalBtn.addEventListener("click", async () => {
+    const journalId = editJournalIdInput.value;
+    const targetIndex = appData?.journals?.findIndex(entry => entry.id === journalId) ?? -1;
+    const date = editJournalDateInput.value;
+    const title = editJournalTitleInput.value.trim();
+    const mood = editJournalMoodInput.value;
+    const text = editJournalEntryText.value.trim();
+
+    if (targetIndex < 0) return;
+    if (!date) {
+        showAppMessage("Please select a journal date.", "Daily Journal", "info");
+        return;
+    }
+    if (!text) {
+        showAppMessage("Please write a short journal entry before saving.", "Daily Journal", "info");
+        return;
+    }
+
+    appData.journals[targetIndex] = {
+        ...appData.journals[targetIndex],
+        date,
+        title,
+        mood,
+        text,
+        updatedAt: new Date().toISOString()
+    };
+
+    await pushDataUpdateToCloudFirestore();
+    renderJournalPanels();
+    closeEditJournalModalPanel();
+    showAppMessage("Journal entry updated successfully.", "Daily Journal", "success");
+});
+
+function closeDeleteJournalConfirmModalPanel() {
+    pendingDeleteJournalId = null;
+    deleteJournalConfirmModal.style.display = "none";
+}
+
+closeDeleteJournalConfirmModal.addEventListener("click", closeDeleteJournalConfirmModalPanel);
+cancelDeleteJournalBtn.addEventListener("click", closeDeleteJournalConfirmModalPanel);
+confirmDeleteJournalBtn.addEventListener("click", async () => {
+    if (!pendingDeleteJournalId || !appData?.journals) {
+        closeDeleteJournalConfirmModalPanel();
+        return;
+    }
+
+    appData.journals = appData.journals.filter(entry => entry.id !== pendingDeleteJournalId);
+
+    if (editingJournalId === pendingDeleteJournalId) {
+        editingJournalId = null;
+        journalTitleInput.value = "";
+        journalEntryText.value = "";
+        saveJournalEntryBtn.innerHTML = `<span class="material-icons-sharp" style="font-size:1rem; vertical-align:middle; margin-right:0.25rem;">save</span> Save Journal Entry`;
+    }
+
+    try {
+        await pushDataUpdateToCloudFirestore();
+        renderJournalPanels();
+        showAppMessage("Journal entry deleted successfully.", "Daily Journal", "success");
+    } catch (error) {
+        showAppMessage(error, "Daily Journal", "error");
+    } finally {
+        closeDeleteJournalConfirmModalPanel();
+    }
+});
+
+window.triggerDeleteCloudLogEntry = async function(index) {
+    if (!appData || !appData.logs || !appData.logs[index]) return;
+    pendingDeleteLogIndex = index;
+    deleteEntryConfirmModal.style.display = "flex";
 };
+
+function closeDeleteEntryConfirmModalPanel() {
+    pendingDeleteLogIndex = null;
+    deleteEntryConfirmModal.style.display = "none";
+}
+
+closeDeleteEntryConfirmModal.addEventListener("click", closeDeleteEntryConfirmModalPanel);
+cancelDeleteEntryBtn.addEventListener("click", closeDeleteEntryConfirmModalPanel);
+confirmDeleteEntryBtn.addEventListener("click", async () => {
+    if (pendingDeleteLogIndex === null || !appData?.logs?.[pendingDeleteLogIndex]) {
+        closeDeleteEntryConfirmModalPanel();
+        return;
+    }
+
+    appData.hoursEarned = Math.max(0, appData.hoursEarned - appData.logs[pendingDeleteLogIndex].total);
+    appData.logs.splice(pendingDeleteLogIndex, 1);
+    await pushDataUpdateToCloudFirestore();
+    synchronizeSystemUIPanels();
+    closeDeleteEntryConfirmModalPanel();
+    showAppMessage("DTR entry deleted successfully.", "Daily Time Record", "success");
+});
 
 clearAllDtrBtn.addEventListener("click", async () => {
     if (!appData || !appData.logs || appData.logs.length === 0) {
@@ -1161,13 +1578,21 @@ clearAllDtrBtn.addEventListener("click", async () => {
         return;
     }
 
-    const confirmed = confirm("Clear all Daily Time Record entries? This will remove every attendance log and reset earned hours to 0.");
-    if (!confirmed) return;
+    clearDtrConfirmModal.style.display = "flex";
+});
 
+function closeClearDtrConfirmModalPanel() {
+    clearDtrConfirmModal.style.display = "none";
+}
+
+closeClearDtrConfirmModal.addEventListener("click", closeClearDtrConfirmModalPanel);
+cancelClearDtrBtn.addEventListener("click", closeClearDtrConfirmModalPanel);
+confirmClearDtrBtn.addEventListener("click", async () => {
     appData.logs = [];
     appData.hoursEarned = 0.00;
     await pushDataUpdateToCloudFirestore();
     synchronizeSystemUIPanels();
+    closeClearDtrConfirmModalPanel();
     showAppMessage("All DTR records have been cleared.", "Daily Time Record", "success");
 });
 
