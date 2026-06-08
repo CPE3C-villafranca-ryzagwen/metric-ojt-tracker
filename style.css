@@ -175,9 +175,10 @@ body.dark-theme-variables .theme-switch-handle {
 aside {
     height: 100vh;
     position: fixed;
-    width: 14rem;
+    width: 16rem;
     z-index: 10;
-    background: var(--color-background);
+    background: var(--color-white);
+    border-right: 1px solid var(--color-info-light);
     transition: background 300ms ease;
 }
 aside .top { display: flex; align-items: center; justify-content: space-between; margin-top: 1.4rem; padding: 0 1rem; }
@@ -212,8 +213,9 @@ aside .sidebar a:hover span { margin-left: 1rem; }
 
 main {
     padding-top: 1.4rem;
-    margin-left: 15.8rem; 
-    width: calc(100% - 15.8rem);
+    padding-right: 1.8rem;
+    margin-left: 17.8rem; 
+    width: calc(100% - 17.8rem);
     min-height: 100vh;
     display: block; 
 }
@@ -1316,7 +1318,7 @@ body.dark-theme-variables .action-download-dtr-matrix-btn:hover {
 /* ===================== RESPONSIVE CONFIGURATIONS ===================== */
 @media screen and (max-width: 1200px) {
     aside { width: 5.6rem; } aside .logo h2, aside .sidebar h3 { display: none; } aside .sidebar a { width: 5.6rem; } aside .sidebar a:last-child { position: relative; margin-top: 1.8rem; }
-    main { margin-left: 7.4rem; width: calc(100% - 7.4rem); }
+    main { margin-left: 7.4rem; width: calc(100% - 7.4rem); padding-right: 1.8rem; }
     .insights { grid-template-columns: repeat(2, 1fr); gap: 1rem; } .profile-banner { flex-direction: column; align-items: flex-start; gap: 1.5rem; } .dashboard-bottom-row { flex-direction: column; }
 }
 @media screen and (max-width: 768px) {
@@ -1563,8 +1565,81 @@ body.dark-theme-variables .action-download-dtr-matrix-btn:hover {
         grid-template-columns: 1fr;
     }
     .delete-account-confirm-actions { grid-template-columns: 1fr; }
-}
 
+    /* ================================================================= */
+    /* REVISED RESPONSIVE LAYOUT ENGINE ENGINE FOR ORIGINAL SCROLL VIEW */
+    /* ================================================================= */
+    .hide-on-mobile {
+        display: table-cell !important;
+    }
+    
+    .show-on-mobile {
+        display: none !important;
+    }
+    
+    /* Pinapagana muli ang scroll para sa table records box nang hindi nasisira ang view */
+    .responsive-table-wrapper {
+        width: 100% !important;
+        overflow-x: auto !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 0.5rem !important;
+    }
+
+    /* Pwersahang pinananatili ang lapad ng orihinal na matrix para pwedeng i-swipe */
+    .full-width-table {
+        min-width: 780px !important;
+        width: 100% !important;
+    }
+    
+    /* Sakto at compact na spacing para sa bawat grid elements cell content text */
+    .full-width-table th, 
+    .full-width-table td {
+        padding: 0.6rem 0.4rem !important;
+        font-size: 0.82rem !important;
+        white-space: nowrap !important;
+    }
+
+    /* Inaayos ang layout ng card-header para mag-stack patayo ang text at buttons */
+    .preview-card .card-header,
+    .dtr-matrix-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.8rem !important;
+        padding: 0.5rem 0 !important;
+    }
+    
+    .dtr-matrix-header .header-text-container h2 {
+        font-size: 1.1rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    /* 100% horizontal expansion rule para sa magkatabing buttons space container */
+    .dtr-matrix-header .header-actions-wrapper,
+    .header-actions-wrapper {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 0.5rem !important;
+        justify-content: space-between !important;
+    }
+    
+    /* 50/50 block width split parameters para sa Download at Clear All buttons */
+    .action-download-dtr-matrix-btn,
+    .action-clear-all-dtr-btn {
+        flex: 1 !important;
+        width: 50% !important;
+        font-size: 0.75rem !important;
+        padding: 0.6rem 0.5rem !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+
+    .action-download-dtr-matrix-btn span,
+    .action-clear-all-dtr-btn span {
+        font-size: 1rem !important;
+    }
+}
 @media screen and (max-width: 420px) {
     main {
         padding: 0.85rem;
