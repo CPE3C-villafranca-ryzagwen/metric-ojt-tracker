@@ -1107,7 +1107,18 @@ function createJournalTaskListHTML(text) {
 
 function triggerJournalWordDownload() {
     ensureAppCollections();
-    const entries = getSortedJournalEntries().sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    // REVISED: Inaayos muna ang pagkakasunod-sunod base sa Week Number, 
+    // at kung magkapareho ng linggo, inaayos ito base sa Petsa (Ascending).
+    const entries = [...appData.journals].sort((a, b) => {
+        const weekA = Math.max(1, parseInt(a.weekNumber, 10) || 1);
+        const weekB = Math.max(1, parseInt(b.weekNumber, 10) || 1);
+        
+        if (weekA !== weekB) {
+            return weekA - weekB; // Unang isasayos mula pinakamababang linggo (1, 2, 3...)
+        }
+        return new Date(a.date) - new Date(b.date); // Isasayos naman sa loob ng linggo base sa petsa
+    });
 
     if (!entries.length) {
         showAppMessage("No activity entries found to export.", "Daily Activities", "info");
