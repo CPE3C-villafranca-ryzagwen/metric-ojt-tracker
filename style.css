@@ -731,15 +731,6 @@ table tbody tr td.text-muted { padding: 2rem !important; font-style: italic; bac
     font-weight: 800;
     color: var(--color-dark);
 }
-.journal-mood {
-    background: rgba(115, 128, 236, 0.14);
-    color: var(--color-primary);
-    padding: 0.28rem 0.65rem;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 800;
-    white-space: nowrap;
-}
 .journal-item p {
     color: var(--color-dark-variant);
     line-height: 1.55;
@@ -844,66 +835,115 @@ body.dark-theme-variables .journal-action-menu {
     align-items: start;
 }
 
-.journal-mood-group,
+.journal-form .form-group:nth-child(3),
 .journal-form .form-group:nth-child(4),
+.journal-form .form-group:nth-child(5),
 .journal-form .save-profile-btn {
     grid-column: 1 / -1;
 }
 
-.journal-mood-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.55rem;
+.journal-report-header {
+    align-items: flex-start;
+    gap: 1rem;
 }
 
-.journal-mood-option {
-    min-height: 2.75rem;
-    padding: 0.55rem 0.85rem;
-    border-radius: 999px;
-    border: 1px solid var(--color-info-light);
-    background: var(--color-white);
-    color: var(--color-dark-variant);
+.journal-report-header h2 {
+    margin-bottom: 0.15rem;
+}
+
+.action-download-journal-btn {
+    background: var(--color-primary);
+    color: #ffffff;
+    padding: 0.65rem 0.9rem;
+    border-radius: var(--border-radius-1);
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 800;
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    font-family: inherit;
-    font-size: 0.86rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+    justify-content: center;
+    gap: 0.4rem;
+    border: none;
+    white-space: nowrap;
+    box-shadow: 0 0.45rem 1rem rgba(115, 128, 236, 0.18);
 }
 
-.journal-mood-option span {
-    font-size: 1.15rem;
-    line-height: 1;
+.action-download-journal-btn span {
+    font-size: 1.05rem !important;
+    color: #ffffff !important;
 }
 
-.journal-mood-option:hover,
-.journal-mood-option.active {
-    background: rgba(115, 128, 236, 0.12);
-    border-color: rgba(115, 128, 236, 0.42);
-    color: var(--color-primary);
+.action-download-journal-btn:hover {
+    background: var(--color-primary-variant);
 }
 
-.journal-mood-option.active {
-    transform: translateY(-1px);
-    box-shadow: 0 0.5rem 1.2rem rgba(115, 128, 236, 0.14);
-}
 
 .journal-entry-list {
     align-items: stretch;
+    overflow: visible;
+    gap: 1rem;
+    background: transparent;
 }
 
 .journal-item {
-    padding: 1.1rem 1.2rem;
-    border-radius: 1.1rem;
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr) 10rem;
+    gap: 0;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid var(--color-info-light);
+    border-radius: 0;
     background: var(--color-white);
-    box-shadow: 0 0.55rem 1.4rem rgba(132, 139, 200, 0.12);
+    box-shadow: none;
+    overflow: visible;
 }
 
-.journal-item-top {
-    align-items: flex-start;
-    margin-bottom: 0.7rem;
+.journal-item:last-child {
+    border-bottom: none;
+}
+
+.journal-report-date,
+.journal-report-task,
+.journal-report-remark {
+    padding: 1rem;
+    min-width: 0;
+}
+
+.journal-report-date,
+.journal-report-remark {
+    border-left: 1px solid var(--color-info-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.journal-report-date {
+    border-left: none;
+}
+
+.journal-report-date span,
+.journal-report-remark span {
+    color: var(--color-dark);
+    font-weight: 800;
+    font-size: 0.84rem;
+}
+
+.journal-report-task p {
+    color: var(--color-dark-variant);
+    line-height: 1.55;
+    font-size: 0.92rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
+    margin-top: 0.5rem;
+    padding-right: 2.5rem;
+}
+
+.journal-report-task {
+    position: relative;
 }
 
 .journal-item-meta {
@@ -929,30 +969,93 @@ body.dark-theme-variables .journal-action-menu {
     font-weight: 700;
 }
 
-.journal-item-emoji {
-    font-size: 2.3rem;
-    line-height: 1;
-    margin-left: auto;
-    flex-shrink: 0;
-}
-
-.journal-mood {
-    width: fit-content;
-    margin-top: 0.1rem;
-}
 
 .journal-actions {
-    align-self: flex-start;
+    position: absolute;
+    top: 0.85rem;
+    right: 0.75rem;
+    z-index: 5;
 }
 
 .journal-edit-modal-content {
     max-width: 620px !important;
 }
 
-body.dark-theme-variables .journal-mood-option,
 body.dark-theme-variables .journal-item {
     background: #2b3035;
     border-color: var(--color-info-dark);
+}
+
+body.dark-theme-variables .journal-entry-list {
+    background: #2b3035;
+    border-color: var(--color-info-dark);
+}
+
+body.dark-theme-variables .journal-report-date,
+body.dark-theme-variables .journal-report-remark {
+    border-color: var(--color-info-dark);
+}
+
+.journal-preview-list .journal-item {
+    grid-template-columns: minmax(0, 1fr);
+    border: 1px solid var(--color-info-light);
+    border-radius: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.journal-preview-list .journal-report-date,
+.journal-preview-list .journal-report-remark {
+    display: none;
+}
+
+.journal-preview-list .journal-report-task {
+    padding: 1rem;
+}
+
+.journal-week-group {
+    border: 1px solid var(--color-info-light);
+    border-radius: 1rem;
+    overflow: visible;
+    background: var(--color-white);
+}
+
+.journal-week-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: var(--color-background);
+    border-bottom: 1px solid var(--color-info-light);
+}
+
+.journal-week-header h3 {
+    color: var(--color-dark);
+    font-size: 0.98rem;
+    font-weight: 800;
+}
+
+.journal-week-header span {
+    color: var(--color-dark-variant);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.journal-week-table {
+    overflow: visible;
+}
+
+.journal-week-table .journal-item:last-child {
+    border-bottom: none;
+}
+
+body.dark-theme-variables .journal-week-group,
+body.dark-theme-variables .journal-week-header {
+    border-color: var(--color-info-dark);
+}
+
+body.dark-theme-variables .journal-week-header {
+    background: #252a2e;
 }
 
 #profile-modal {
@@ -1163,6 +1266,53 @@ footer .footer-content span { color: var(--color-primary); font-weight: 700; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+/* ===================== DOWNLOAD DTR MATRIX BUTTON STYLES ===================== */
+.action-download-dtr-matrix-btn {
+    background: var(--color-primary) !important;
+    color: #ffffff !important;
+    padding: 0.55rem 0.9rem !important;
+    border-radius: var(--border-radius-1) !important;
+    font-family: inherit;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    cursor: pointer;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.35rem !important;
+    border: none !important;
+    white-space: nowrap !important;
+    transition: background 200ms ease, transform 200ms ease, box-shadow 200ms ease !important;
+    box-shadow: 0 4px 10px rgba(115, 128, 236, 0.15) !important;
+}
+
+.action-download-dtr-matrix-btn span {
+    font-size: 1.15rem !important;
+    color: #ffffff !important;
+    background: transparent !important;
+}
+
+.action-download-dtr-matrix-btn:hover {
+    background: var(--color-primary-variant) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 14px rgba(115, 128, 236, 0.25) !important;
+}
+
+/* Dark Mode Theme Adjustment for Download DTR */
+body.dark-theme-variables .action-download-dtr-matrix-btn {
+    background: #bb86fc !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(187, 134, 252, 0.2) !important;
+}
+
+body.dark-theme-variables .action-download-dtr-matrix-btn span {
+    color: #ffffff !important;
+}
+
+body.dark-theme-variables .action-download-dtr-matrix-btn:hover {
+    background: #d7b7fd !important;
+    box-shadow: 0 6px 14px rgba(187, 134, 252, 0.4) !important;
+}
 /* ===================== RESPONSIVE CONFIGURATIONS ===================== */
 @media screen and (max-width: 1200px) {
     aside { width: 5.6rem; } aside .logo h2, aside .sidebar h3 { display: none; } aside .sidebar a { width: 5.6rem; } aside .sidebar a:last-child { position: relative; margin-top: 1.8rem; }
@@ -1327,6 +1477,57 @@ footer .footer-content span { color: var(--color-primary); font-weight: 700; }
     }
     .journal-form {
         grid-template-columns: 1fr;
+    }
+    .journal-report-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 1rem !important;
+    }
+
+    .journal-report-header .action-download-journal-btn {
+        width: 100% !important;
+    }
+    .action-download-journal-btn {
+        width: 100%;
+    }
+    .journal-entry-list {
+        border: 0;
+        background: transparent;
+        gap: 0.85rem;
+    }
+    .journal-item,
+    .journal-preview-list .journal-item {
+        grid-template-columns: 1fr;
+        border: 1px solid var(--color-info-light);
+        border-radius: 1rem;
+        overflow: visible;
+    }
+    .journal-week-table .journal-item {
+        border-left: 0;
+        border-right: 0;
+        border-top: 0;
+        border-radius: 0;
+    }
+    .journal-week-table .journal-item:last-child {
+        border-bottom: 0;
+    }
+    .journal-preview-list .journal-report-date,
+    .journal-preview-list .journal-report-remark {
+        display: flex;
+    }
+    .journal-report-date,
+    .journal-report-task,
+    .journal-report-remark {
+        border-left: 0;
+        border-bottom: 1px solid var(--color-info-light);
+        padding: 0.85rem 1rem;
+    }
+    .journal-report-remark {
+        border-bottom: 0;
+    }
+    .journal-actions {
+        top: 0.75rem;
+        right: 0.75rem;
     }
     .calendar-picker-box {
         padding: 1rem;

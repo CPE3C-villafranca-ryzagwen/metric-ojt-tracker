@@ -1,13 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Metric</title>
-
-    <link rel="icon" type="image" href="./assets/logo ojt.png">
-
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link rel="stylesheet" href="./style.css">
 </head>
@@ -52,7 +49,7 @@
                     <button type="button" class="start-system-btn form-action-login-purple-btn" id="login-trigger-btn">Sign In Account</button>
 
                     <button type="button" class="start-system-btn google-login-action-btn" style="background: var(--color-white); color: var(--color-dark); border: 1px solid var(--color-info-dark); margin-top: 0.6rem; display: flex; align-items: center; justify-content: center; gap: 0.8rem; box-shadow: none;">
-                        <img src="./assets/google-icon.svg" style="width: 1.2rem; height: 1.2rem; display: inline-block;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_Logo.svg" style="width: 1.2rem; height: 1.2rem; display: inline-block;">
                         Continue with Google Account
                     </button>
 
@@ -83,7 +80,7 @@
                     <button type="button" class="start-system-btn form-submit-register-green-btn" id="core-register-trigger-action-btn">Create Profile Account</button>
                     
                     <button type="button" class="start-system-btn google-login-action-btn" style="background: var(--color-white); color: var(--color-dark); border: 1px solid var(--color-info-dark); margin-top: 0.6rem; display: flex; align-items: center; justify-content: center; gap: 0.8rem; box-shadow: none;">
-                        <img src="./assets/google-icon.svg" style="width: 1.2rem; height: 1.2rem; display: inline-block;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_Logo.svg" style="width: 1.2rem; height: 1.2rem; display: inline-block;">
                         Sign Up with Google Account
                     </button>
 
@@ -93,7 +90,7 @@
                 </div>
             </div>
             <div class="auth-watermark" style="margin-top: 2rem; text-align: center; font-size: 0.72rem; color: var(--color-info-dark); font-weight: 500;">
-                © 2026 <span>Metric Internship Tracker</span> • Powered by Firebase Cloud Core
+                Â© 2026 <span>Metric Internship Tracker</span> â€¢ Powered by Firebase Cloud Core
             </div>
         </div>
     </div>
@@ -210,11 +207,7 @@
                 </a>
                 <a href="#" id="nav-journal">
                     <span class="material-icons-sharp">auto_stories</span>
-                    <h3>Daily Journal</h3>
-                </a>
-                <a href="#" id="nav-download">
-                    <span class="material-icons-sharp">download</span>
-                    <h3>Download DTR</h3>
+                    <h3>Daily Activities</h3>
                 </a>
                 <a href="#" id="nav-logout">
                     <span class="material-icons-sharp">logout</span>
@@ -366,11 +359,11 @@
 
                 <div class="preview-card journal-preview-card">
                     <div class="card-header">
-                        <h2>Daily Journal Preview</h2>
-                        <span class="material-icons-sharp shortcut-icon" id="shortcut-to-journal" title="Open Daily Journal">open_in_new</span>
+                        <h2>Daily Activities Preview</h2>
+                        <span class="material-icons-sharp shortcut-icon" id="shortcut-to-journal" title="Open Daily Activities">open_in_new</span>
                     </div>
                     <div class="journal-preview-list" id="journal-preview-list">
-                        <p class="text-muted">No journal entries yet.</p>
+                        <p class="text-muted">No activity entries yet.</p>
                     </div>
                 </div>
             </section>
@@ -444,17 +437,24 @@
                     </div>
                 </div>
             </section>
-
             <section id="dtr-view" style="display: none;">
                 <h1>Daily Time Record</h1>
                 
                 <div class="preview-card full-dtr-card" style="margin-top: 1rem;">
-                     <div class="card-header">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
                         <h2>Official Rendered Shift Logs Database Matrix</h2>
-                        <button type="button" class="action-clear-all-dtr-btn" id="clear-all-dtr-btn">
-                            <span class="material-icons-sharp">delete_sweep</span>
-                            Clear All
-                        </button>
+                        <div class="header-actions-wrapper" style="display: flex; gap: 0.8rem; align-items: center;">
+                            
+                            <button type="button" class="action-download-dtr-matrix-btn" id="download-dtr-btn-matrix">
+                                <span class="material-icons-sharp">download</span>
+                                Download DTR
+                            </button>
+                            
+                            <button type="button" class="action-clear-all-dtr-btn" id="clear-all-dtr-btn">
+                                <span class="material-icons-sharp">delete_sweep</span>
+                                Clear All
+                            </button>
+                        </div>
                     </div>
                     <div class="responsive-table-wrapper">
                         <table class="full-width-table">
@@ -471,21 +471,21 @@
                                 </tr>
                             </thead>
                             <tbody id="full-dtr-rows-root">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
             <section id="journal-view" style="display: none;">
-                <h1>Daily Journal</h1>
+                <h1>Daily Activities</h1>
 
                 <div class="journal-workspace">
                     <div class="journal-entry-card">
                         <div class="journal-composer-header">
                             <div>
                                 <h2 id="journal-current-date-title">Today</h2>
-                                <small class="text-muted">Write a quick reflection for your internship day</small>
+                                <small class="text-muted">List the activities and tasks you worked on today</small>
                             </div>
                         </div>
                         <div class="journal-form">
@@ -494,42 +494,45 @@
                                 <input type="date" id="journal-date">
                             </div>
                             <div class="form-group">
-                                <label for="journal-title">Title</label>
-                                <input type="text" id="journal-title" placeholder="Journal title">
-                            </div>
-                            <div class="form-group journal-mood-group">
-                                <label>How are you feeling?</label>
-                                <input type="hidden" id="journal-mood" value="Happy">
-                                <div class="journal-mood-options" id="journal-mood-options">
-                                </div>
-                                <select id="journal-mood-legacy" class="custom-select-input" style="display:none;">
-                                    <option value="😊 Great">😊 Great</option>
-                                    <option value="🙂 Good">🙂 Good</option>
-                                    <option value="😌 Okay">😌 Okay</option>
-                                    <option value="😴 Tired">😴 Tired</option>
-                                    <option value="💪 Challenged">💪 Challenged</option>
-                                    <option value="🏆 Proud">🏆 Proud</option>
-                                    <option value="🤯 Learned a lot">🤯 Learned a lot</option>
-                                    <option value="✨ Inspired">✨ Inspired</option>
-                                </select>
+                                <label for="journal-week">Week No.</label>
+                                <input type="number" id="journal-week" min="1" value="1" placeholder="1">
                             </div>
                             <div class="form-group">
-                                <label for="journal-entry-text"></label>Description</label>
-                                <textarea id="journal-entry-text" rows="5" placeholder="Write your journal entry..."></textarea>
+                                <label for="journal-title">Title</label>
+                                <input type="text" id="journal-title" placeholder="Day 16 (Thursday) - Time In: 6:00 AM">
+                            </div>
+                            <div class="form-group">
+                                <label for="journal-entry-text">List of activities / task</label>
+                                <textarea id="journal-entry-text" rows="5" placeholder="List the activities or tasks you completed today..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="journal-remark">Remarks</label>
+                                <select id="journal-remark" class="custom-select-input">
+                                    <option value="Finished">Finished</option>
+                                    <option value="On-going">On-going</option>
+                                </select>
                             </div>
                             <button type="button" class="save-profile-btn" id="save-journal-entry-btn">
                                 <span class="material-icons-sharp" style="font-size:1rem; vertical-align:middle; margin-right:0.25rem;">save</span>
-                                Save Journal Entry
+                                Save Activity Entry
                             </button>
                         </div>
                     </div>
-
                     <div class="journal-list-card">
-                        <div class="card-header">
-                            <h2>Journal Feed</h2>
+                        <div class="card-header journal-report-header" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                            <div>
+                                <h2>Student Internship Weekly Accomplishment Report</h2>
+                                <small class="text-muted">Saved entries are arranged as report rows for Word export.</small>
+                            </div>
+                            
+                            <button type="button" class="action-download-journal-btn" id="nav-download-journal">
+                                <span class="material-icons-sharp">description</span>
+                                Download Activities
+                            </button>
+                            
                         </div>
                         <div class="journal-entry-list" id="journal-entry-list">
-                            <p class="text-muted">No journal entries yet.</p>
+                            <p class="text-muted">No activity entries yet.</p>
                         </div>
                     </div>
                 </div>
@@ -537,7 +540,7 @@
 
             <footer>
                 <div class="footer-content">
-                    <p>© 2026 <span>Metric Internship Tracker</span> • Powered by Firebase Cloud Core</p>
+                    <p>Â© 2026 <span>Metric Internship Tracker</span> â€¢ Powered by Firebase Cloud Core</p>
                 </div>
             </footer>
         </main>
@@ -645,15 +648,15 @@
             <div class="modal-header">
                 <div class="app-message-title-row">
                     <span class="material-icons-sharp app-message-icon">delete</span>
-                    <h2>Delete Journal?</h2>
+                    <h2>Delete Activity?</h2>
                 </div>
                 <span class="material-icons-sharp close-modal" id="close-delete-journal-confirm-modal">close</span>
             </div>
             <div class="modal-body">
-                <p class="text-muted app-message-text">Are you sure you want to delete this journal entry?</p>
+                <p class="text-muted app-message-text">Are you sure you want to delete this activity entry?</p>
                 <div class="app-confirm-actions">
                     <button type="button" class="save-profile-btn secondary-auth-action-btn" id="cancel-delete-journal-btn">Cancel</button>
-                    <button type="button" class="save-profile-btn destructive-red-action-btn" id="confirm-delete-journal-btn">Yes, delete journal</button>
+                    <button type="button" class="save-profile-btn destructive-red-action-btn" id="confirm-delete-journal-btn">Yes, delete activity</button>
                 </div>
             </div>
         </div>
@@ -663,7 +666,7 @@
         <div class="modal-content journal-edit-modal-content">
             <div class="modal-header">
                 <div class="app-message-title-row">
-                    <h2>Edit Journal Entry</h2>
+                    <h2>Edit Activity Entry</h2>
                 </div>
                 <span class="material-icons-sharp close-modal" id="close-edit-journal-modal">close</span>
             </div>
@@ -674,19 +677,25 @@
                     <input type="date" id="edit-journal-date">
                 </div>
                 <div class="form-group">
+                    <label for="edit-journal-week">Week No.</label>
+                    <input type="number" id="edit-journal-week" min="1" value="1" placeholder="1">
+                </div>
+                <div class="form-group">
                     <label for="edit-journal-title">Title</label>
                     <input type="text" id="edit-journal-title" placeholder="Journal title">
                 </div>
-                <div class="form-group journal-mood-group">
-                    <label>How are you feeling?</label>
-                    <input type="hidden" id="edit-journal-mood" value="Happy">
-                    <div class="journal-mood-options" id="edit-journal-mood-options"></div>
+                <div class="form-group">
+                    <label for="edit-journal-entry-text">List of activities / task</label>
+                    <textarea id="edit-journal-entry-text" rows="5" placeholder="Update your activities or tasks..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="edit-journal-entry-text">Description</label>
-                    <textarea id="edit-journal-entry-text" rows="5" placeholder="Update your journal entry..."></textarea>
+                    <label for="edit-journal-remark">Remarks</label>
+                    <select id="edit-journal-remark" class="custom-select-input">
+                        <option value="Finished">Finished</option>
+                        <option value="On-going">On-going</option>
+                    </select>
                 </div>
-                <button type="button" class="save-profile-btn" id="save-edit-journal-btn">Save Journal Update</button>
+                <button type="button" class="save-profile-btn" id="save-edit-journal-btn">Save Activity Update</button>
             </div>
         </div>
     </div>

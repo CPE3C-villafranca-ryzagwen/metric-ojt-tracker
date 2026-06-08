@@ -7,7 +7,8 @@ const navDashboard = document.getElementById("nav-dashboard");
 const navCalendar = document.getElementById("nav-calendar");
 const navDtr = document.getElementById("nav-dtr");
 const navJournal = document.getElementById("nav-journal");
-const navDownload = document.getElementById("nav-download");
+const downloadDtrBtnMatrix = document.getElementById("download-dtr-btn-matrix");
+const navDownloadJournal = document.getElementById("nav-download-journal");
 const navLogout = document.getElementById("nav-logout");
 const clearAllDtrBtn = document.getElementById("clear-all-dtr-btn");
 
@@ -49,9 +50,9 @@ const cancelDeleteJournalBtn = document.getElementById("cancel-delete-journal-bt
 const confirmDeleteJournalBtn = document.getElementById("confirm-delete-journal-btn");
 const saveJournalEntryBtn = document.getElementById("save-journal-entry-btn");
 const journalDateInput = document.getElementById("journal-date");
+const journalWeekInput = document.getElementById("journal-week");
 const journalTitleInput = document.getElementById("journal-title");
-const journalMoodInput = document.getElementById("journal-mood");
-const journalMoodOptions = document.getElementById("journal-mood-options");
+const journalRemarkInput = document.getElementById("journal-remark");
 const journalCurrentDateTitle = document.getElementById("journal-current-date-title");
 const journalEntryText = document.getElementById("journal-entry-text");
 const journalPreviewList = document.getElementById("journal-preview-list");
@@ -61,9 +62,9 @@ const closeEditJournalModal = document.getElementById("close-edit-journal-modal"
 const saveEditJournalBtn = document.getElementById("save-edit-journal-btn");
 const editJournalIdInput = document.getElementById("edit-journal-id");
 const editJournalDateInput = document.getElementById("edit-journal-date");
+const editJournalWeekInput = document.getElementById("edit-journal-week");
 const editJournalTitleInput = document.getElementById("edit-journal-title");
-const editJournalMoodInput = document.getElementById("edit-journal-mood");
-const editJournalMoodOptions = document.getElementById("edit-journal-mood-options");
+const editJournalRemarkInput = document.getElementById("edit-journal-remark");
 const editJournalEntryText = document.getElementById("edit-journal-entry-text");
 
 // IDENTITY GATEWAY RE-ALLOCATION SELECTORS
@@ -189,59 +190,35 @@ function ensureAppCollections() {
 function getSortedJournalEntries() {
     ensureAppCollections();
     if (!appData) return [];
-    return [...appData.journals].sort((a, b) => new Date(b.date) - new Date(a.date));
-}
-
-const JOURNAL_MOODS = [
-    { label: "Happy", emoji: "😊" },
-    { label: "Neutral", emoji: "😐" },
-    { label: "Angry", emoji: "😠" },
-    { label: "Upset", emoji: "😔" },
-    { label: "Overwhelmed", emoji: "😵‍💫" },
-    { label: "Productive", emoji: "🚀" },
-    { label: "Confused", emoji: "😕" },
-    { label: "Bored", emoji: "🥱" },
-    { label: "Sleepy", emoji: "😴" },
-    { label: "Tired", emoji: "😪" },
-    { label: "Stressed", emoji: "😰" },
-    { label: "Proud", emoji: "🏆" }
-];
-
-function getJournalMoodMeta(mood) {
-    const rawMood = String(mood || "").trim();
-    const plainMood = rawMood.replace(/^[^\p{L}\p{N}]+/u, "").trim();
-    return JOURNAL_MOODS.find(item => item.label.toLowerCase() === rawMood.toLowerCase())
-        || JOURNAL_MOODS.find(item => item.label.toLowerCase() === plainMood.toLowerCase())
-        || JOURNAL_MOODS[0];
-}
-
-function normalizeJournalMood(mood) {
-    return getJournalMoodMeta(mood).label;
-}
-
-function updateJournalMoodPicker(container, input, emojiTarget, nextMood) {
-    if (!container || !input) return;
-    const moodMeta = getJournalMoodMeta(nextMood || input.value);
-    input.value = moodMeta.label;
-    if (emojiTarget) emojiTarget.textContent = moodMeta.emoji;
-    container.querySelectorAll(".journal-mood-option").forEach(button => {
-        button.classList.toggle("active", button.dataset.mood === moodMeta.label);
+    return [...appData.journals].sort((a, b) => {
+        const weekDiff = getJournalEntryWeekNumber(a) - getJournalEntryWeekNumber(b);
+        if (weekDiff !== 0) return weekDiff;
+        return new Date(a.date) - new Date(b.date);
     });
 }
 
-function renderJournalMoodPicker(container, input, emojiTarget) {
-    if (!container || !input) return;
-    container.innerHTML = JOURNAL_MOODS.map(mood => `
-        <button type="button" class="journal-mood-option" data-mood="${mood.label}">
-            <span>${mood.emoji}</span>${mood.label}
-        </button>
-    `).join("");
-    container.addEventListener("click", (event) => {
-        const button = event.target.closest(".journal-mood-option");
-        if (!button) return;
-        updateJournalMoodPicker(container, input, emojiTarget, button.dataset.mood);
-    });
-    updateJournalMoodPicker(container, input, emojiTarget, input.value);
+function getJournalEntryWeekNumber(entry) {
+    const storedWeek = parseInt(entry?.weekNumber, 10);
+    if (!isNaN(storedWeek) && storedWeek > 0) return storedWeek;
+
+    if (!entry?.date || !appData?.startDate) return 1;
+    const startDate = new Date(appData.startDate);
+    const entryDate = new Date(entry.date);
+    const diffDays = Math.max(0, Math.floor((entryDate - startDate) / 86400000));
+    return Math.floor(diffDays / 7) + 1;
+}
+
+function getJournalWeekGroups(entries) {
+    return entries.reduce((groups, entry) => {
+        const weekNumber = getJournalEntryWeekNumber(entry);
+        const existingGroup = groups.find(group => group.weekNumber === weekNumber);
+        if (existingGroup) {
+            existingGroup.entries.push(entry);
+        } else {
+            groups.push({ weekNumber, entries: [entry] });
+        }
+        return groups;
+    }, []);
 }
 
 function updateJournalComposerDateTitle() {
@@ -259,20 +236,23 @@ function updateJournalComposerDateTitle() {
     });
 }
 
+function syncJournalWeekFromDate() {
+    if (!journalDateInput || !journalWeekInput || !journalDateInput.value) return;
+    journalWeekInput.value = getJournalEntryWeekNumber({ date: journalDateInput.value });
+}
+
 function createJournalItemHTML(entry) {
     const text = escapeHTML(entry.text || "No description added.");
-    const mood = getJournalMoodMeta(entry.mood);
     const title = escapeHTML(entry.title || "Untitled journal entry");
+    const remark = escapeHTML(entry.remark || "Finished");
     return `
         <article class="journal-item" data-journal-id="${escapeHTML(entry.id)}">
-            <div class="journal-item-top">
-                <div class="journal-item-meta">
-                    <span class="journal-date">${getFormattedAcademicDate(entry.date)}</span>
-                    <h3>${title}</h3>
-                    <span class="journal-mood">${mood.emoji} ${escapeHTML(mood.label)}</span>
-                </div>
+            <div class="journal-report-date">
+                <span>${getFormattedAcademicDate(entry.date)}</span>
+            </div>
+            <div class="journal-report-task">
                 <div class="journal-actions">
-                    <button type="button" class="journal-menu-trigger" data-journal-id="${escapeHTML(entry.id)}" aria-label="Journal entry actions">
+                    <button type="button" class="journal-menu-trigger" data-journal-id="${escapeHTML(entry.id)}" aria-label="Activity entry actions">
                         <span class="material-icons-sharp">more_horiz</span>
                     </button>
                     <div class="journal-action-menu">
@@ -280,23 +260,44 @@ function createJournalItemHTML(entry) {
                         <button type="button" data-journal-action="delete" data-journal-id="${escapeHTML(entry.id)}">Delete</button>
                     </div>
                 </div>
+                <div class="journal-item-meta">
+                    <h3>${title}</h3>
+                </div>
+                <p>${text}</p>
             </div>
-            <p>${text}</p>
+            <div class="journal-report-remark">
+                <span>${remark}</span>
+            </div>
         </article>
     `;
 }
+
+function createJournalWeekGroupHTML(group) {
+    return `
+        <section class="journal-week-group">
+            <div class="journal-week-header">
+                <h3>Week No. ${group.weekNumber}</h3>
+                <span>${group.entries.length} ${group.entries.length === 1 ? "entry" : "entries"}</span>
+            </div>
+            <div class="journal-week-table">
+                ${group.entries.map(createJournalItemHTML).join("")}
+            </div>
+        </section>
+    `;
+}
+
 function renderJournalPanels() {
     if (!journalPreviewList || !journalEntryList) return;
     const entries = getSortedJournalEntries();
 
     if (entries.length === 0) {
-        journalPreviewList.innerHTML = `<p class="text-muted">No journal entries yet.</p>`;
-        journalEntryList.innerHTML = `<p class="text-muted">No journal entries yet.</p>`;
+        journalPreviewList.innerHTML = `<p class="text-muted">No activity entries yet.</p>`;
+        journalEntryList.innerHTML = `<p class="text-muted">No activity entries yet.</p>`;
         return;
     }
 
-    journalPreviewList.innerHTML = entries.slice(0, 3).map(createJournalItemHTML).join("");
-    journalEntryList.innerHTML = entries.map(createJournalItemHTML).join("");
+    journalPreviewList.innerHTML = entries.slice(-3).reverse().map(createJournalItemHTML).join("");
+    journalEntryList.innerHTML = getJournalWeekGroups(entries).map(createJournalWeekGroupHTML).join("");
 }
 
 function synchronizeSystemUIPanels() { ensureAppCollections(); updateUIMetrics(); renderMonthlyCalendars(); renderDtrTables(); renderJournalPanels(); }
@@ -894,7 +895,7 @@ closeBtn.addEventListener("click", () => {
     closeMobileSidebar();
 });
 
-[navDashboard, navCalendar, navDtr, navJournal, navDownload, navLogout].forEach(navItem => {
+[navDashboard, navCalendar, navDtr, navJournal, navLogout].forEach(navItem => {
     navItem.addEventListener("click", () => {
         closeMobileSidebar();
     });
@@ -1079,7 +1080,196 @@ const triggerExcelSpreadsheetDownload = (e) => {
     document.body.removeChild(hiddenAnchor);
 };
 
-navDownload.addEventListener("click", triggerExcelSpreadsheetDownload);
+if (downloadDtrBtnMatrix) {
+    downloadDtrBtnMatrix.addEventListener("click", triggerExcelSpreadsheetDownload);
+}
+
+if (navDownloadJournal) {
+    navDownloadJournal.addEventListener("click", (e) => {
+        e.preventDefault();
+        triggerJournalWordDownload();
+    });
+}
+
+function getJournalExportWeekLabel(entries) {
+    const firstWeek = getJournalEntryWeekNumber(entries[0]);
+    return `Week No. ${firstWeek}`;
+}
+
+function createJournalTaskListHTML(text) {
+    const lines = String(text || "No activities added.")
+        .split(/\r?\n/)
+        .map(line => line.replace(/^[\s>*•-]+/, "").trim())
+        .filter(Boolean);
+
+    return `<ul>${lines.map(line => `<li>${escapeHTML(line)}</li>`).join("")}</ul>`;
+}
+
+function triggerJournalWordDownload() {
+    ensureAppCollections();
+    const entries = getSortedJournalEntries().sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    if (!entries.length) {
+        showAppMessage("No activity entries found to export.", "Daily Activities", "info");
+        return;
+    }
+
+    const safeStudentName = appData.studentName.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
+    const exportDate = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const createJournalRows = (groupEntries) => groupEntries.map(entry => `
+        <tr>
+            <td class="date-cell">${getFormattedAcademicDate(entry.date)}</td>
+            <td class="task-cell">
+                <strong>${escapeHTML(entry.title || "Daily accomplishment")}</strong>
+                ${createJournalTaskListHTML(entry.text)}
+            </td>
+            <td class="remark-cell">${escapeHTML(entry.remark || "Finished")}</td>
+        </tr>
+    `).join("");
+
+    const journalWeekTables = getJournalWeekGroups(entries).map(group => `
+        <div class="week-label">Week No. ${group.weekNumber}</div>
+        <table class="journal-report-table">
+            <thead>
+                <tr>
+                    <th style="width:15%;">Date</th>
+                    <th style="width:65%;">List of activities/tasks</th>
+                    <th style="width:20%;">Remarks (Finished/On-going)</th>
+                </tr>
+            </thead>
+            <tbody>${createJournalRows(group.entries)}</tbody>
+        </table>
+    `).join("");
+
+    const wordTemplate = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+        <meta charset="UTF-8">
+        <!--[if gte mso 9]>
+        <xml>
+            <w:WordDocument>
+                <w:View>Print</w:View>
+                <w:Zoom>100</w:Zoom>
+                <w:DoNotOptimizeForBrowser/>
+            </w:WordDocument>
+        </xml>
+        <![endif]-->
+        <style>
+            @page {
+                size: 8.5in 11in;
+                margin: 0.55in 0.65in 0.65in 0.65in;
+            }
+            body {
+                font-family: "Times New Roman", serif;
+                color: #000000;
+                background: #ffffff;
+                font-size: 10pt;
+            }
+            .report-title {
+                text-align: center;
+                font-weight: 700;
+                font-size: 10.5pt;
+                margin: 0 0 18px;
+            }
+            .student-meta {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 12px;
+            }
+            .student-meta td {
+                border: none;
+                padding: 1px 0;
+                font-size: 9.5pt;
+            }
+            .week-label {
+                text-align: center;
+                font-weight: 700;
+                margin: 6px 0 6px;
+            }
+            .journal-report-table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+            .journal-report-table th,
+            .journal-report-table td {
+                border: 1px solid #000000;
+                padding: 4px 5px;
+                vertical-align: top;
+                font-size: 9pt;
+            }
+            .journal-report-table th {
+                text-align: center;
+                font-weight: 700;
+            }
+            .date-cell {
+                width: 15%;
+                text-align: center;
+                vertical-align: middle !important;
+            }
+            .task-cell {
+                width: 65%;
+            }
+            .task-cell strong {
+                display: block;
+                margin-bottom: 2px;
+            }
+            .task-cell ul {
+                margin: 2px 0 0 16px;
+                padding: 0;
+            }
+            .remark-cell {
+                width: 20%;
+                text-align: center;
+                vertical-align: middle !important;
+            }
+            .signatures {
+                margin-top: 28px;
+                font-size: 9pt;
+            }
+            .signature-line {
+                display: inline-block;
+                min-width: 210px;
+                border-bottom: 1px solid #000000;
+                padding: 0 8px 1px;
+                text-align: center;
+                font-size: 8.5pt;
+            }
+            .signature-label {
+                display: block;
+                margin-top: 1px;
+                font-weight: 700;
+                font-size: 8pt;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="report-title">STUDENT INTERNSHIP WEEKLY ACCOMPLISHMENT REPORT</div>
+        <table class="student-meta">
+            <tr><td>Name of Student: <strong>${escapeHTML((appData.studentName || "").toUpperCase())}</strong></td></tr>
+            <tr><td>Department: <strong>${escapeHTML((appData.department || "N/A").toUpperCase())}</strong></td></tr>
+        </table>
+        ${journalWeekTables}
+        <div class="signatures">
+            <p><strong>Prepared by:</strong></p>
+            <p><span class="signature-line">${escapeHTML((appData.studentName || "").toUpperCase())}</span><br><span class="signature-label">Printed Student Name over Signature</span></p>
+            <br>
+            <p><strong>Reviewed and Approved by:</strong></p>
+            <p><span class="signature-line">&nbsp;</span><br><span class="signature-label">Intern Supervisor Name over Signature</span></p>
+        </div>
+    </body>
+    </html>`;
+
+    const blobFile = new Blob([wordTemplate], { type: "application/msword" });
+    const downloadUrl = URL.createObjectURL(blobFile);
+    const hiddenAnchor = document.createElement("a");
+    hiddenAnchor.href = downloadUrl;
+    hiddenAnchor.download = `Metric_Daily_Activities_${safeStudentName}.doc`;
+    document.body.appendChild(hiddenAnchor);
+    hiddenAnchor.click();
+    document.body.removeChild(hiddenAnchor);
+    URL.revokeObjectURL(downloadUrl);
+}
 
 // PROFILE DIALOG BINDINGS
 profileNavBtn.addEventListener("click", () => {
@@ -1279,10 +1469,16 @@ function updateEditLogHoursField() {
 
 initializeMetricTimePickers();
 if (journalDateInput) journalDateInput.value = new Date().toISOString().split('T')[0];
-renderJournalMoodPicker(journalMoodOptions, journalMoodInput, null);
-renderJournalMoodPicker(editJournalMoodOptions, editJournalMoodInput, null);
 updateJournalComposerDateTitle();
-if (journalDateInput) journalDateInput.addEventListener("change", updateJournalComposerDateTitle);
+syncJournalWeekFromDate();
+if (journalDateInput) journalDateInput.addEventListener("change", () => {
+    updateJournalComposerDateTitle();
+    syncJournalWeekFromDate();
+});
+if (editJournalDateInput) editJournalDateInput.addEventListener("change", () => {
+    if (!editJournalDateInput.value || !editJournalWeekInput) return;
+    editJournalWeekInput.value = getJournalEntryWeekNumber({ date: editJournalDateInput.value });
+});
 
 window.openEditLogRowWorkspace = function(index) {
     if (!appData || !appData.logs || !appData.logs[index]) return;
@@ -1381,17 +1577,18 @@ document.getElementById("confirm-log-btn").addEventListener("click", async () =>
 
 saveJournalEntryBtn.addEventListener("click", async () => {
     const date = journalDateInput.value;
-    const mood = journalMoodInput.value;
+    const weekNumber = Math.max(1, parseInt(journalWeekInput.value, 10) || 1);
     const title = journalTitleInput.value.trim();
+    const remark = journalRemarkInput.value;
     const text = journalEntryText.value.trim();
 
     if (!date) {
-        showAppMessage("Please select a journal date.", "Daily Journal", "info");
+        showAppMessage("Please select an activity date.", "Daily Activities", "info");
         return;
     }
 
     if (!text) {
-        showAppMessage("Please write a short journal entry before saving.", "Daily Journal", "info");
+        showAppMessage("Please list at least one activity or task before saving.", "Daily Activities", "info");
         return;
     }
 
@@ -1402,8 +1599,9 @@ saveJournalEntryBtn.addEventListener("click", async () => {
     const entryPayload = {
         id: editingJournalId || appData.journals[existingIndex]?.id || `journal-${Date.now()}`,
         date,
+        weekNumber,
         title,
-        mood,
+        remark,
         text,
         updatedAt: new Date().toISOString()
     };
@@ -1418,10 +1616,11 @@ saveJournalEntryBtn.addEventListener("click", async () => {
     renderJournalPanels();
     editingJournalId = null;
     journalTitleInput.value = "";
+    journalRemarkInput.value = "Finished";
     journalEntryText.value = "";
-    updateJournalMoodPicker(journalMoodOptions, journalMoodInput, null, "Happy");
-    saveJournalEntryBtn.innerHTML = `<span class="material-icons-sharp" style="font-size:1rem; vertical-align:middle; margin-right:0.25rem;">save</span> Save Journal Entry`;
-    showAppMessage("Journal entry saved successfully.", "Daily Journal", "success");
+    syncJournalWeekFromDate();
+    saveJournalEntryBtn.innerHTML = `<span class="material-icons-sharp" style="font-size:1rem; vertical-align:middle; margin-right:0.25rem;">save</span> Save Activity Entry`;
+    showAppMessage("Activity entry saved successfully.", "Daily Activities", "success");
 });
 
 function closeJournalMenus() {
@@ -1453,9 +1652,10 @@ function handleJournalActionClick(event) {
         editingJournalId = journalId;
         editJournalIdInput.value = journalId;
         editJournalDateInput.value = targetEntry.date || "";
+        editJournalWeekInput.value = getJournalEntryWeekNumber(targetEntry);
         editJournalTitleInput.value = targetEntry.title || "";
+        editJournalRemarkInput.value = targetEntry.remark || "Finished";
         editJournalEntryText.value = targetEntry.text || "";
-        updateJournalMoodPicker(editJournalMoodOptions, editJournalMoodInput, null, targetEntry.mood);
         editJournalModal.style.display = "flex";
         return;
     }
@@ -1483,25 +1683,27 @@ saveEditJournalBtn.addEventListener("click", async () => {
     const journalId = editJournalIdInput.value;
     const targetIndex = appData?.journals?.findIndex(entry => entry.id === journalId) ?? -1;
     const date = editJournalDateInput.value;
+    const weekNumber = Math.max(1, parseInt(editJournalWeekInput.value, 10) || 1);
     const title = editJournalTitleInput.value.trim();
-    const mood = editJournalMoodInput.value;
+    const remark = editJournalRemarkInput.value;
     const text = editJournalEntryText.value.trim();
 
     if (targetIndex < 0) return;
     if (!date) {
-        showAppMessage("Please select a journal date.", "Daily Journal", "info");
+        showAppMessage("Please select an activity date.", "Daily Activities", "info");
         return;
     }
     if (!text) {
-        showAppMessage("Please write a short journal entry before saving.", "Daily Journal", "info");
+        showAppMessage("Please list at least one activity or task before saving.", "Daily Activities", "info");
         return;
     }
 
     appData.journals[targetIndex] = {
         ...appData.journals[targetIndex],
         date,
+        weekNumber,
         title,
-        mood,
+        remark,
         text,
         updatedAt: new Date().toISOString()
     };
@@ -1509,7 +1711,7 @@ saveEditJournalBtn.addEventListener("click", async () => {
     await pushDataUpdateToCloudFirestore();
     renderJournalPanels();
     closeEditJournalModalPanel();
-    showAppMessage("Journal entry updated successfully.", "Daily Journal", "success");
+    showAppMessage("Activity entry updated successfully.", "Daily Activities", "success");
 });
 
 function closeDeleteJournalConfirmModalPanel() {
@@ -1530,16 +1732,17 @@ confirmDeleteJournalBtn.addEventListener("click", async () => {
     if (editingJournalId === pendingDeleteJournalId) {
         editingJournalId = null;
         journalTitleInput.value = "";
+        journalRemarkInput.value = "Finished";
         journalEntryText.value = "";
-        saveJournalEntryBtn.innerHTML = `<span class="material-icons-sharp" style="font-size:1rem; vertical-align:middle; margin-right:0.25rem;">save</span> Save Journal Entry`;
+        saveJournalEntryBtn.innerHTML = `<span class="material-icons-sharp" style="font-size:1rem; vertical-align:middle; margin-right:0.25rem;">save</span> Save Activity Entry`;
     }
 
     try {
         await pushDataUpdateToCloudFirestore();
         renderJournalPanels();
-        showAppMessage("Journal entry deleted successfully.", "Daily Journal", "success");
+        showAppMessage("Activity entry deleted successfully.", "Daily Activities", "success");
     } catch (error) {
-        showAppMessage(error, "Daily Journal", "error");
+        showAppMessage(error, "Daily Activities", "error");
     } finally {
         closeDeleteJournalConfirmModalPanel();
     }
